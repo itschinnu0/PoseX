@@ -6,7 +6,7 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.sqrt
 
-object SquatAnalyzer {
+object SquatsAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
 

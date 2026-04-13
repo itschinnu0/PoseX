@@ -24,7 +24,7 @@ import androidx.core.content.ContextCompat
 import com.example.posex.exercise.ExerciseType
 import com.example.posex.exercise.PlankAnalyzer
 import com.example.posex.exercise.PushupAnalyzer
-import com.example.posex.exercise.SquatAnalyzer
+import com.example.posex.exercise.SquatsAnalyzer
 import com.example.posex.feedback.FeedbackEngine
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
@@ -73,7 +73,7 @@ fun WorkoutScreen(
 
     fun processPose(pose: Pose) {
         val feedbackList = when (exerciseType) {
-            ExerciseType.SQUAT -> SquatAnalyzer.analyze(pose)
+            ExerciseType.SQUAT -> SquatsAnalyzer.analyze(pose)
             ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
             ExerciseType.PLANK -> PlankAnalyzer.analyze(pose)
         }

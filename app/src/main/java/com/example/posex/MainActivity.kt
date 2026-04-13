@@ -4,13 +4,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.runtime.*
+import com.example.posex.exercise.ExerciseType
+import com.example.posex.ui.screens.HomeScreen
+import com.example.posex.ui.screens.WorkoutScreen
 import com.example.posex.ui.theme.PoseXTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,29 +16,28 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PoseXTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                PoseXApp()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun PoseXApp() {
+    var selectedExercise by remember { mutableStateOf<ExerciseType?>(null) }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    PoseXTheme {
-        Greeting("Android")
+    if (selectedExercise == null) {
+        HomeScreen(
+            onExerciseSelected = { exercise ->
+                selectedExercise = exercise
+            }
+        )
+    } else {
+        WorkoutScreen(
+            exerciseType = selectedExercise!!,
+            onExit = {
+                selectedExercise = null
+            }
+        )
     }
 }
