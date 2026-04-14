@@ -16,6 +16,10 @@ object SquatsAnalyzer {
     private const val MIN_CONFIDENCE = 0.5f
     private val repCounter = RepCounter()
 
+    fun resetRepCounter() {
+        repCounter.reset()
+    }
+
     fun analyze(pose: Pose): SquatAnalysisResult {
         val feedback = mutableListOf<String>()
         var kneeAngle: Double? = null

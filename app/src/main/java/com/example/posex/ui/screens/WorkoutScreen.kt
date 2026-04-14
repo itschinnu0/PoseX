@@ -79,14 +79,8 @@ fun WorkoutScreen(
     fun processPose(pose: Pose) {
         val result = when (exerciseType) {
             ExerciseType.SQUAT -> SquatsAnalyzer.analyze(pose)
-            ExerciseType.PUSHUP -> {
-                val feedbackList = PushupAnalyzer.analyze(pose)
-                SquatAnalysisResult(feedbackList, 0, null)
-            }
-            ExerciseType.PLANK -> {
-                val feedbackList = PlankAnalyzer.analyze(pose)
-                SquatAnalysisResult(feedbackList, 0, null)
-            }
+            ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
+            ExerciseType.PLANK -> PlankAnalyzer.analyze(pose)
         }
 
         val primaryFeedback = result.feedback.firstOrNull() ?: return
@@ -106,6 +100,16 @@ fun WorkoutScreen(
         ) {
             feedbackEngine.speak(primaryFeedback)
         }
+    }
+
+    fun stopExercise() {
+        // Reset rep counters for all exercises
+        when (exerciseType) {
+            ExerciseType.SQUAT -> SquatsAnalyzer.resetRepCounter()
+            ExerciseType.PUSHUP -> PushupAnalyzer.resetRepCounter()
+            ExerciseType.PLANK -> PlankAnalyzer.resetRepCounter()
+        }
+        onExit()
     }
 
     if (!hasCameraPermission) {
@@ -170,18 +174,18 @@ fun WorkoutScreen(
             )
         }
 
-        // Exit button at top
+        // Stop button at top left
         Button(
-            onClick = onExit,
+            onClick = { stopExercise() },
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xCC000000)
+                containerColor = Color(0xFFFF5252)
             ),
             shape = RoundedCornerShape(8.dp)
         ) {
-            Text(text = "Exit", color = Color.White)
+            Text(text = "Stop", color = Color.White)
         }
 
         // Exercise label at top center
@@ -204,16 +208,14 @@ fun WorkoutScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
-                // Rep counter display for squat
-                if (exerciseType == ExerciseType.SQUAT) {
-                    Text(
-                        text = "Reps: $repCount",
-                        color = Color(0xFF00E676),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+                // Rep counter display for all exercises
+                Text(
+                    text = "Reps: $repCount",
+                    color = Color(0xFF00E676),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
             }
         }
     }

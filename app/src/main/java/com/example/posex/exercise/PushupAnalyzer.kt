@@ -8,8 +8,13 @@ import kotlin.math.sqrt
 object PushupAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
+    private val repCounter = RepCounter()
 
-    fun analyze(pose: Pose): List<String> {
+    fun resetRepCounter() {
+        repCounter.reset()
+    }
+
+    fun analyze(pose: Pose): SquatAnalysisResult {
         val feedback = mutableListOf<String>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
@@ -31,13 +36,16 @@ object PushupAnalyzer {
 
         if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
             feedback.add("Move into frame so your upper body is fully visible")
-            return feedback
+            return SquatAnalysisResult(feedback, repCounter.getRepCount(), null)
         }
 
         // Elbow angle check
         val leftElbowAngle = calculateAngle(leftShoulder!!, leftElbow!!, leftWrist!!)
         val rightElbowAngle = calculateAngle(rightShoulder!!, rightElbow!!, rightWrist!!)
         val avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2
+
+        // Update rep counter based on elbow angle
+        val reps = repCounter.updateReps(avgElbowAngle)
 
         when {
             avgElbowAngle > 160 -> feedback.add("Lower your chest, bend your elbows more")
@@ -71,7 +79,7 @@ object PushupAnalyzer {
             feedback.add("Good form, keep going")
         }
 
-        return feedback
+        return SquatAnalysisResult(feedback, reps, avgElbowAngle)
     }
 
     private fun calculateAngle(

@@ -8,8 +8,15 @@ import kotlin.math.sqrt
 object PlankAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
+    private var repCount = 0
+    private var inGoodForm = false
 
-    fun analyze(pose: Pose): List<String> {
+    fun resetRepCounter() {
+        repCount = 0
+        inGoodForm = false
+    }
+
+    fun analyze(pose: Pose): SquatAnalysisResult {
         val feedback = mutableListOf<String>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
@@ -29,7 +36,7 @@ object PlankAnalyzer {
 
         if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
             feedback.add("Move into frame so your full body is visible")
-            return feedback
+            return SquatAnalysisResult(feedback, repCount, null)
         }
 
         val shoulderMidY = (leftShoulder!!.position.y + rightShoulder!!.position.y) / 2
@@ -44,6 +51,13 @@ object PlankAnalyzer {
                 ((hipMidX - shoulderMidX) / (ankleMidX - shoulderMidX + 0.001f))
 
         val hipDeviation = hipMidY - expectedHipY
+
+        // Track form changes: count when user returns to good form after bad form
+        val isGoodForm = hipDeviation in -40.0..40.0
+        if (isGoodForm && !inGoodForm) {
+            repCount++
+        }
+        inGoodForm = isGoodForm
 
         when {
             hipDeviation > 40 -> feedback.add("Lift your hips, your body is sagging down")
@@ -67,7 +81,7 @@ object PlankAnalyzer {
             feedback.add("Good form, hold steady")
         }
 
-        return feedback
+        return SquatAnalysisResult(feedback, repCount, hipDeviation as Double?)
     }
 
     private fun calculateAngle(
