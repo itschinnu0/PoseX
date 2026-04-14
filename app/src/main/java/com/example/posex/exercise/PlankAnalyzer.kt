@@ -49,7 +49,7 @@ object PlankAnalyzer {
         val expectedHipY = shoulderMidY + (ankleMidY - shoulderMidY) *
                 ((hipMidX - shoulderMidX) / (ankleMidX - shoulderMidX + 0.001f))
 
-        val hipDeviation = hipMidY - expectedHipY
+        val hipDeviation = (hipMidY - expectedHipY)
 
         val isGoodForm = hipDeviation in -40.0..40.0
 
@@ -84,6 +84,6 @@ object PlankAnalyzer {
             feedback.add("Good form, hold steady")
         }
 
-        return ExerciseAnalysisResult(feedback, 0, hipDeviation, totalHoldSeconds)
+        return ExerciseAnalysisResult(feedback, 0, hipDeviation.toDouble(), totalHoldSeconds)
     }
 }
