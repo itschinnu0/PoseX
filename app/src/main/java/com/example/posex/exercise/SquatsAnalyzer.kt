@@ -16,54 +16,65 @@ object SquatsAnalyzer {
         val leftHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
         val leftKnee = pose.getPoseLandmark(PoseLandmark.LEFT_KNEE)
         val leftAnkle = pose.getPoseLandmark(PoseLandmark.LEFT_ANKLE)
+        val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
+
         val rightHip = pose.getPoseLandmark(PoseLandmark.RIGHT_HIP)
         val rightKnee = pose.getPoseLandmark(PoseLandmark.RIGHT_KNEE)
         val rightAnkle = pose.getPoseLandmark(PoseLandmark.RIGHT_ANKLE)
-        val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
         val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
 
-        // Confidence check — if key landmarks are not visible, don't give feedback
-        val keyLandmarks = listOf(leftHip, leftKnee, leftAnkle, rightHip, rightKnee, rightAnkle)
-        if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
-            feedback.add("Move into frame so your full body is visible")
+        // Detect which side is more visible
+        val leftConfidence = listOf(leftHip, leftKnee, leftAnkle, leftShoulder)
+            .mapNotNull { it?.inFrameLikelihood }
+            .average()
+
+        val rightConfidence = listOf(rightHip, rightKnee, rightAnkle, rightShoulder)
+            .mapNotNull { it?.inFrameLikelihood }
+            .average()
+
+        val usLeft = leftConfidence >= rightConfidence
+
+        val hip = if (usLeft) leftHip else rightHip
+        val knee = if (usLeft) leftKnee else rightKnee
+        val ankle = if (usLeft) leftAnkle else rightAnkle
+        val shoulder = if (usLeft) leftShoulder else rightShoulder
+
+        // Confidence check on selected side
+        if (hip == null || knee == null || ankle == null ||
+            hip.inFrameLikelihood < MIN_CONFIDENCE ||
+            knee.inFrameLikelihood < MIN_CONFIDENCE ||
+            ankle.inFrameLikelihood < MIN_CONFIDENCE
+        ) {
+            feedback.add("Move into frame so your full body is visible from the side")
             return feedback
         }
 
-        // Knee angle check
-        val leftKneeAngle = calculateAngle(leftHip!!, leftKnee!!, leftAnkle!!)
-        val rightKneeAngle = calculateAngle(rightHip!!, rightKnee!!, rightAnkle!!)
-        val avgKneeAngle = (leftKneeAngle + rightKneeAngle) / 2
+        // Knee angle — primary squat metric
+        val kneeAngle = calculateAngle(hip, knee, ankle)
 
         when {
-            avgKneeAngle > 160 -> feedback.add("Go lower, bend your knees more")
-            avgKneeAngle < 60 -> feedback.add("You are too low, come up slightly")
+            kneeAngle > 160 -> feedback.add("Go lower, bend your knees more")
+            kneeAngle < 60 -> feedback.add("You are too low, come up slightly")
         }
 
-        // Knee symmetry check
-        if (abs(leftKneeAngle - rightKneeAngle) > 15) {
-            feedback.add("Balance your weight evenly on both legs")
-        }
-
-        // Torso upright check using hip and shoulder
-        if (leftShoulder != null && rightShoulder != null &&
-            leftShoulder.inFrameLikelihood > MIN_CONFIDENCE &&
-            rightShoulder.inFrameLikelihood > MIN_CONFIDENCE
-        ) {
-            val hipMidY = (leftHip!!.position.y + rightHip!!.position.y) / 2
-            val shoulderMidY = (leftShoulder.position.y + rightShoulder.position.y) / 2
-            val hipMidX = (leftHip.position.x + rightHip.position.x) / 2
-            val shoulderMidX = (leftShoulder.position.x + rightShoulder.position.x) / 2
-
+        // Torso upright check — shoulder should be above hip vertically
+        if (shoulder != null && shoulder.inFrameLikelihood > MIN_CONFIDENCE) {
             val torsoAngle = Math.toDegrees(
                 atan2(
-                    (hipMidY - shoulderMidY).toDouble(),
-                    (hipMidX - shoulderMidX).toDouble()
+                    (hip.position.y - shoulder.position.y).toDouble(),
+                    (hip.position.x - shoulder.position.x).toDouble()
                 )
             )
-
+            // From side view, torso should be roughly vertical (angle near 90 degrees)
             if (abs(torsoAngle) < 60) {
                 feedback.add("Keep your chest up, do not lean forward")
             }
+        }
+
+        // Knee over toe check — knee should not go too far past ankle horizontally
+        val kneeAnkleHorizontalDiff = abs(knee.position.x - ankle.position.x)
+        if (kneeAnkleHorizontalDiff > 80) {
+            feedback.add("Do not let your knees go past your toes")
         }
 
         if (feedback.isEmpty()) {
