@@ -13,24 +13,27 @@ fun PoseOverlay(
     pose: Pose?,
     modifier: Modifier = Modifier,
     imageWidth: Int,
-    imageHeight: Int,
-    screenWidth: Float,
-    screenHeight: Float
+    imageHeight: Int
 ) {
     Canvas(modifier = modifier) {
         if (pose == null) return@Canvas
 
-        val scaleX = screenWidth / imageHeight // flipped because of portrait + front camera
-        val scaleY = screenHeight / imageWidth
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        // CameraX in portrait delivers frames rotated 90 degrees
+        // so image width maps to screen height and vice versa
+        val scaleX = canvasWidth / imageHeight.toFloat()
+        val scaleY = canvasHeight / imageWidth.toFloat()
 
         fun landmarkToOffset(landmark: PoseLandmark): Offset {
-            // Mirror X for front camera
-            val x = screenWidth - (landmark.position.x * scaleX)
+            // Mirror X axis for front camera
+            val x = canvasWidth - (landmark.position.x * scaleX)
             val y = landmark.position.y * scaleY
             return Offset(x, y)
         }
 
-        fun drawLine(startId: Int, endId: Int) {
+        fun drawBone(startId: Int, endId: Int) {
             val start = pose.getPoseLandmark(startId)
             val end = pose.getPoseLandmark(endId)
             if (start != null && end != null &&
@@ -41,40 +44,39 @@ fun PoseOverlay(
                     color = Color(0xFF00E5FF),
                     start = landmarkToOffset(start),
                     end = landmarkToOffset(end),
-                    strokeWidth = 4f
+                    strokeWidth = 6f
                 )
             }
         }
 
-        // Draw skeleton lines
         // Torso
-        drawLine(PoseLandmark.LEFT_SHOULDER, PoseLandmark.RIGHT_SHOULDER)
-        drawLine(PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP)
-        drawLine(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_HIP)
-        drawLine(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_HIP)
+        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.RIGHT_SHOULDER)
+        drawBone(PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP)
+        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_HIP)
+        drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_HIP)
 
         // Left arm
-        drawLine(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_ELBOW)
-        drawLine(PoseLandmark.LEFT_ELBOW, PoseLandmark.LEFT_WRIST)
+        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_ELBOW)
+        drawBone(PoseLandmark.LEFT_ELBOW, PoseLandmark.LEFT_WRIST)
 
         // Right arm
-        drawLine(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_ELBOW)
-        drawLine(PoseLandmark.RIGHT_ELBOW, PoseLandmark.RIGHT_WRIST)
+        drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_ELBOW)
+        drawBone(PoseLandmark.RIGHT_ELBOW, PoseLandmark.RIGHT_WRIST)
 
         // Left leg
-        drawLine(PoseLandmark.LEFT_HIP, PoseLandmark.LEFT_KNEE)
-        drawLine(PoseLandmark.LEFT_KNEE, PoseLandmark.LEFT_ANKLE)
+        drawBone(PoseLandmark.LEFT_HIP, PoseLandmark.LEFT_KNEE)
+        drawBone(PoseLandmark.LEFT_KNEE, PoseLandmark.LEFT_ANKLE)
 
         // Right leg
-        drawLine(PoseLandmark.RIGHT_HIP, PoseLandmark.RIGHT_KNEE)
-        drawLine(PoseLandmark.RIGHT_KNEE, PoseLandmark.RIGHT_ANKLE)
+        drawBone(PoseLandmark.RIGHT_HIP, PoseLandmark.RIGHT_KNEE)
+        drawBone(PoseLandmark.RIGHT_KNEE, PoseLandmark.RIGHT_ANKLE)
 
-        // Draw landmark dots
+        // Dots
         pose.allPoseLandmarks.forEach { landmark ->
             if (landmark.inFrameLikelihood > 0.5f) {
                 drawCircle(
                     color = Color.White,
-                    radius = 8f,
+                    radius = 10f,
                     center = landmarkToOffset(landmark)
                 )
             }

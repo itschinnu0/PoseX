@@ -9,7 +9,7 @@ import com.google.mlkit.vision.pose.PoseDetector
 import com.google.mlkit.vision.pose.defaults.PoseDetectorOptions
 
 class PoseAnalyzer(
-    private val onPoseDetected: (Pose) -> Unit,
+    private val onPoseDetected: (Pose, Int, Int) -> Unit,
     private val onError: (Exception) -> Unit
 ) : ImageAnalysis.Analyzer {
 
@@ -34,7 +34,7 @@ class PoseAnalyzer(
 
         detector.process(image)
             .addOnSuccessListener { pose ->
-                onPoseDetected(pose)
+                onPoseDetected(pose, imageProxy.width, imageProxy.height)
             }
             .addOnFailureListener { exception ->
                 onError(exception)

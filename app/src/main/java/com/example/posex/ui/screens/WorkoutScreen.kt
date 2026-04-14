@@ -38,6 +38,9 @@ fun WorkoutScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
+    var imageWidth by remember { mutableStateOf(480) }
+    var imageHeight by remember { mutableStateOf(640) }
+
     var hasCameraPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -118,8 +121,10 @@ fun WorkoutScreen(
         CameraPreview(
             modifier = Modifier.fillMaxSize(),
             lifecycleOwner = lifecycleOwner,
-            onPoseDetected = { pose ->
+            onPoseDetected = { pose, width, height ->
                 currentPose = pose
+                imageWidth = width
+                imageHeight = height
                 processPose(pose)
             },
             onError = { error ->
@@ -130,10 +135,8 @@ fun WorkoutScreen(
         PoseOverlay(
             pose = currentPose,
             modifier = Modifier.fillMaxSize(),
-            imageWidth = 480,
-            imageHeight = 640,
-            screenWidth = context.resources.displayMetrics.widthPixels.toFloat(),
-            screenHeight = context.resources.displayMetrics.heightPixels.toFloat()
+            imageWidth = imageWidth,
+            imageHeight = imageHeight
         )
 
         // Feedback banner at bottom

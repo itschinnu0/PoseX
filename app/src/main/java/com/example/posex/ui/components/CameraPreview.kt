@@ -20,7 +20,7 @@ import java.util.concurrent.Executors
 fun CameraPreview(
     modifier: Modifier = Modifier,
     lifecycleOwner: LifecycleOwner,
-    onPoseDetected: (Pose) -> Unit,
+    onPoseDetected: (Pose, Int, Int) -> Unit,
     onError: (Exception) -> Unit
 ) {
     val executor = remember { Executors.newSingleThreadExecutor() }
@@ -49,7 +49,7 @@ private fun startCamera(
     lifecycleOwner: LifecycleOwner,
     previewView: PreviewView,
     executor: java.util.concurrent.Executor,
-    onPoseDetected: (Pose) -> Unit,
+    onPoseDetected: (Pose, Int, Int) -> Unit,
     onError: (Exception) -> Unit
 ) {
     val cameraProviderFuture = ProcessCameraProvider.getInstance(context)
