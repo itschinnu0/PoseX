@@ -25,6 +25,7 @@ import com.example.posex.exercise.ExerciseType
 import com.example.posex.exercise.PlankAnalyzer
 import com.example.posex.exercise.PushupAnalyzer
 import com.example.posex.exercise.SquatsAnalyzer
+import com.example.posex.exercise.SquatAnalysisResult
 import com.example.posex.feedback.FeedbackEngine
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
@@ -65,6 +66,7 @@ fun WorkoutScreen(
     var currentPose by remember { mutableStateOf<Pose?>(null) }
     var feedbackText by remember { mutableStateOf("Get into position") }
     var feedbackColor by remember { mutableStateOf(Color(0xFFB0BEC5)) }
+    var repCount by remember { mutableStateOf(0) }
 
     val feedbackEngine = remember { FeedbackEngine(context) }
 
@@ -75,13 +77,20 @@ fun WorkoutScreen(
     }
 
     fun processPose(pose: Pose) {
-        val feedbackList = when (exerciseType) {
+        val result = when (exerciseType) {
             ExerciseType.SQUAT -> SquatsAnalyzer.analyze(pose)
-            ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
-            ExerciseType.PLANK -> PlankAnalyzer.analyze(pose)
+            ExerciseType.PUSHUP -> {
+                val feedbackList = PushupAnalyzer.analyze(pose)
+                SquatAnalysisResult(feedbackList, 0, null)
+            }
+            ExerciseType.PLANK -> {
+                val feedbackList = PlankAnalyzer.analyze(pose)
+                SquatAnalysisResult(feedbackList, 0, null)
+            }
         }
 
-        val primaryFeedback = feedbackList.firstOrNull() ?: return
+        val primaryFeedback = result.feedback.firstOrNull() ?: return
+        repCount = result.repCount
 
         feedbackText = primaryFeedback
         feedbackColor = if (primaryFeedback == "Good form, keep going" ||
@@ -186,12 +195,26 @@ fun WorkoutScreen(
                 )
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Text(
-                text = exerciseType.name,
-                color = Color(0xFF00E5FF),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = exerciseType.name,
+                    color = Color(0xFF00E5FF),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                // Rep counter display for squat
+                if (exerciseType == ExerciseType.SQUAT) {
+                    Text(
+                        text = "Reps: $repCount",
+                        color = Color(0xFF00E676),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+            }
         }
     }
 }

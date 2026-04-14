@@ -3,15 +3,22 @@ package com.example.posex.exercise
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseLandmark
 import kotlin.math.abs
-import kotlin.math.atan2
 import kotlin.math.sqrt
+
+data class SquatAnalysisResult(
+    val feedback: List<String>,
+    val repCount: Int,
+    val kneeAngle: Double?
+)
 
 object SquatsAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
+    private val repCounter = RepCounter()
 
-    fun analyze(pose: Pose): List<String> {
+    fun analyze(pose: Pose): SquatAnalysisResult {
         val feedback = mutableListOf<String>()
+        var kneeAngle: Double? = null
 
         val leftHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
         val leftKnee = pose.getPoseLandmark(PoseLandmark.LEFT_KNEE)
@@ -46,11 +53,12 @@ object SquatsAnalyzer {
             ankle.inFrameLikelihood < MIN_CONFIDENCE
         ) {
             feedback.add("Move into frame so your full body is visible from the side")
-            return feedback
+            return SquatAnalysisResult(feedback, repCounter.getRepCount(), null)
         }
 
         // Knee angle — primary squat metric
-        val kneeAngle = calculateAngle(hip, knee, ankle)
+        kneeAngle = calculateAngle(hip, knee, ankle)
+        val reps = repCounter.updateReps(kneeAngle)
 
         when {
             kneeAngle > 160 -> feedback.add("Go lower, bend your knees more")
@@ -58,16 +66,21 @@ object SquatsAnalyzer {
         }
 
         // Torso upright check — shoulder should be above hip vertically
+        // Torso upright check — from side view
+        // if shoulder is too far forward of hip horizontally, user is leaning
         if (shoulder != null && shoulder.inFrameLikelihood > MIN_CONFIDENCE) {
-            val torsoAngle = Math.toDegrees(
-                atan2(
-                    (hip.position.y - shoulder.position.y).toDouble(),
-                    (hip.position.x - shoulder.position.x).toDouble()
-                )
-            )
-            // From side view, torso should be roughly vertical (angle near 90 degrees)
-            if (abs(torsoAngle) < 60) {
+            val shoulderHipHorizontalDiff = shoulder.position.x - hip.position.x
+
+            // In side view, a large horizontal difference means forward lean
+            // The sign depends on which side is facing camera, so use abs
+            if (abs(shoulderHipHorizontalDiff) > 60) {
                 feedback.add("Keep your chest up, do not lean forward")
+            }
+
+            // In side view, a small horizontal difference means back bend
+            // The sign depends on which side is facing camera, so use abs
+            if (abs(shoulderHipHorizontalDiff) < 20 && abs(shoulderHipHorizontalDiff) > 5) {
+                feedback.add("Keep your chest up, do not lean backward")
             }
         }
 
@@ -81,7 +94,7 @@ object SquatsAnalyzer {
             feedback.add("Good form, keep going")
         }
 
-        return feedback
+        return SquatAnalysisResult(feedback, reps, kneeAngle)
     }
 
     private fun calculateAngle(
