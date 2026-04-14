@@ -3,20 +3,19 @@ package com.example.posex.exercise
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseLandmark
 import kotlin.math.abs
-import kotlin.math.sqrt
 
 object PlankAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
-    private var repCount = 0
-    private var inGoodForm = false
+    private var holdStartTime: Long? = null
+    private var totalHoldSeconds = 0
 
     fun resetRepCounter() {
-        repCount = 0
-        inGoodForm = false
+        holdStartTime = null
+        totalHoldSeconds = 0
     }
 
-    fun analyze(pose: Pose): SquatAnalysisResult {
+    fun analyze(pose: Pose): ExerciseAnalysisResult {
         val feedback = mutableListOf<String>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
@@ -35,8 +34,9 @@ object PlankAnalyzer {
         )
 
         if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
+            holdStartTime = null
             feedback.add("Move into frame so your full body is visible")
-            return SquatAnalysisResult(feedback, repCount, null)
+            return ExerciseAnalysisResult(feedback, 0, null, totalHoldSeconds)
         }
 
         val shoulderMidY = (leftShoulder!!.position.y + rightShoulder!!.position.y) / 2
@@ -46,25 +46,28 @@ object PlankAnalyzer {
         val ankleMidY = (leftAnkle!!.position.y + rightAnkle!!.position.y) / 2
         val ankleMidX = (leftAnkle.position.x + rightAnkle.position.x) / 2
 
-        // Body alignment — hip should sit on the line between shoulder and ankle
         val expectedHipY = shoulderMidY + (ankleMidY - shoulderMidY) *
                 ((hipMidX - shoulderMidX) / (ankleMidX - shoulderMidX + 0.001f))
 
         val hipDeviation = hipMidY - expectedHipY
 
-        // Track form changes: count when user returns to good form after bad form
         val isGoodForm = hipDeviation in -40.0..40.0
-        if (isGoodForm && !inGoodForm) {
-            repCount++
+
+        // Track hold duration only when form is correct
+        if (isGoodForm) {
+            if (holdStartTime == null) {
+                holdStartTime = System.currentTimeMillis()
+            }
+            totalHoldSeconds = ((System.currentTimeMillis() - holdStartTime!!) / 1000).toInt()
+        } else {
+            holdStartTime = null
         }
-        inGoodForm = isGoodForm
 
         when {
             hipDeviation > 40 -> feedback.add("Lift your hips, your body is sagging down")
             hipDeviation < -40 -> feedback.add("Lower your hips, your body is too high")
         }
 
-        // Shoulder directly above elbow check
         if (leftElbow != null && rightElbow != null &&
             leftElbow.inFrameLikelihood > MIN_CONFIDENCE &&
             rightElbow.inFrameLikelihood > MIN_CONFIDENCE
@@ -81,26 +84,6 @@ object PlankAnalyzer {
             feedback.add("Good form, hold steady")
         }
 
-        return SquatAnalysisResult(feedback, repCount, hipDeviation as Double?)
-    }
-
-    private fun calculateAngle(
-        first: PoseLandmark,
-        mid: PoseLandmark,
-        last: PoseLandmark
-    ): Double {
-        val ax = first.position.x - mid.position.x
-        val ay = first.position.y - mid.position.y
-        val bx = last.position.x - mid.position.x
-        val by = last.position.y - mid.position.y
-
-        val dot = ax * bx + ay * by
-        val magA = sqrt((ax * ax + ay * ay).toDouble())
-        val magB = sqrt((bx * bx + by * by).toDouble())
-
-        if (magA == 0.0 || magB == 0.0) return 0.0
-
-        val cosAngle = (dot / (magA * magB)).coerceIn(-1.0, 1.0)
-        return Math.toDegrees(Math.acos(cosAngle))
+        return ExerciseAnalysisResult(feedback, 0, hipDeviation, totalHoldSeconds)
     }
 }

@@ -5,22 +5,16 @@ import com.google.mlkit.vision.pose.PoseLandmark
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-data class SquatAnalysisResult(
-    val feedback: List<String>,
-    val repCount: Int,
-    val kneeAngle: Double?
-)
-
 object SquatsAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
-    private val repCounter = RepCounter()
+    private val repCounter = RepCounter(bottomThreshold = 100.0, topThreshold = 140.0)
 
     fun resetRepCounter() {
         repCounter.reset()
     }
 
-    fun analyze(pose: Pose): SquatAnalysisResult {
+    fun analyze(pose: Pose): ExerciseAnalysisResult {
         val feedback = mutableListOf<String>()
         var kneeAngle: Double? = null
 
@@ -57,11 +51,11 @@ object SquatsAnalyzer {
             ankle.inFrameLikelihood < MIN_CONFIDENCE
         ) {
             feedback.add("Move into frame so your full body is visible from the side")
-            return SquatAnalysisResult(feedback, repCounter.getRepCount(), null)
+            return ExerciseAnalysisResult(feedback, repCounter.getRepCount(), null)
         }
 
         // Knee angle — primary squat metric
-        kneeAngle = calculateAngle(hip, knee, ankle)
+        kneeAngle = PoseUtils.calculateAngle(hip, knee, ankle)
         val reps = repCounter.updateReps(kneeAngle)
 
         when {
@@ -98,26 +92,6 @@ object SquatsAnalyzer {
             feedback.add("Good form, keep going")
         }
 
-        return SquatAnalysisResult(feedback, reps, kneeAngle)
-    }
-
-    private fun calculateAngle(
-        first: PoseLandmark,
-        mid: PoseLandmark,
-        last: PoseLandmark
-    ): Double {
-        val ax = first.position.x - mid.position.x
-        val ay = first.position.y - mid.position.y
-        val bx = last.position.x - mid.position.x
-        val by = last.position.y - mid.position.y
-
-        val dot = ax * bx + ay * by
-        val magA = sqrt((ax * ax + ay * ay).toDouble())
-        val magB = sqrt((bx * bx + by * by).toDouble())
-
-        if (magA == 0.0 || magB == 0.0) return 0.0
-
-        val cosAngle = (dot / (magA * magB)).coerceIn(-1.0, 1.0)
-        return Math.toDegrees(Math.acos(cosAngle))
+        return ExerciseAnalysisResult(feedback, reps, kneeAngle)
     }
 }

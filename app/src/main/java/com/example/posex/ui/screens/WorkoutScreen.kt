@@ -21,11 +21,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.example.posex.exercise.ExerciseAnalysisResult
 import com.example.posex.exercise.ExerciseType
 import com.example.posex.exercise.PlankAnalyzer
 import com.example.posex.exercise.PushupAnalyzer
 import com.example.posex.exercise.SquatsAnalyzer
-import com.example.posex.exercise.SquatAnalysisResult
 import com.example.posex.feedback.FeedbackEngine
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
@@ -67,6 +67,7 @@ fun WorkoutScreen(
     var feedbackText by remember { mutableStateOf("Get into position") }
     var feedbackColor by remember { mutableStateOf(Color(0xFFB0BEC5)) }
     var repCount by remember { mutableStateOf(0) }
+    var lastResult by remember { mutableStateOf<ExerciseAnalysisResult?>(null) }
 
     val feedbackEngine = remember { FeedbackEngine(context) }
 
@@ -82,6 +83,8 @@ fun WorkoutScreen(
             ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
             ExerciseType.PLANK -> PlankAnalyzer.analyze(pose)
         }
+
+        lastResult = result
 
         val primaryFeedback = result.feedback.firstOrNull() ?: return
         repCount = result.repCount
@@ -209,13 +212,23 @@ fun WorkoutScreen(
                     fontWeight = FontWeight.Bold
                 )
                 // Rep counter display for all exercises
-                Text(
-                    text = "Reps: $repCount",
-                    color = Color(0xFF00E676),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                if (exerciseType == ExerciseType.PLANK) {
+                    Text(
+                        text = "Hold: ${lastResult?.holdDurationSeconds ?: 0}s",
+                        color = Color(0xFF00E676),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Reps: $repCount",
+                        color = Color(0xFF00E676),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
             }
         }
     }

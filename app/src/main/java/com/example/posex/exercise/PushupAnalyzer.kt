@@ -3,18 +3,17 @@ package com.example.posex.exercise
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseLandmark
 import kotlin.math.abs
-import kotlin.math.sqrt
 
 object PushupAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
-    private val repCounter = RepCounter()
+    private val repCounter = RepCounter(bottomThreshold = 60.0, topThreshold = 140.0)
 
     fun resetRepCounter() {
         repCounter.reset()
     }
 
-    fun analyze(pose: Pose): SquatAnalysisResult {
+    fun analyze(pose: Pose): ExerciseAnalysisResult {
         val feedback = mutableListOf<String>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
@@ -36,12 +35,12 @@ object PushupAnalyzer {
 
         if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
             feedback.add("Move into frame so your upper body is fully visible")
-            return SquatAnalysisResult(feedback, repCounter.getRepCount(), null)
+            return ExerciseAnalysisResult(feedback, repCounter.getRepCount(), null)
         }
 
         // Elbow angle check
-        val leftElbowAngle = calculateAngle(leftShoulder!!, leftElbow!!, leftWrist!!)
-        val rightElbowAngle = calculateAngle(rightShoulder!!, rightElbow!!, rightWrist!!)
+        val leftElbowAngle = PoseUtils.calculateAngle(leftShoulder!!, leftElbow!!, leftWrist!!)
+        val rightElbowAngle = PoseUtils.calculateAngle(rightShoulder!!, rightElbow!!, rightWrist!!)
         val avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2
 
         // Update rep counter based on elbow angle
@@ -79,26 +78,6 @@ object PushupAnalyzer {
             feedback.add("Good form, keep going")
         }
 
-        return SquatAnalysisResult(feedback, reps, avgElbowAngle)
-    }
-
-    private fun calculateAngle(
-        first: PoseLandmark,
-        mid: PoseLandmark,
-        last: PoseLandmark
-    ): Double {
-        val ax = first.position.x - mid.position.x
-        val ay = first.position.y - mid.position.y
-        val bx = last.position.x - mid.position.x
-        val by = last.position.y - mid.position.y
-
-        val dot = ax * bx + ay * by
-        val magA = sqrt((ax * ax + ay * ay).toDouble())
-        val magB = sqrt((bx * bx + by * by).toDouble())
-
-        if (magA == 0.0 || magB == 0.0) return 0.0
-
-        val cosAngle = (dot / (magA * magB)).coerceIn(-1.0, 1.0)
-        return Math.toDegrees(Math.acos(cosAngle))
+        return ExerciseAnalysisResult(feedback, reps, avgElbowAngle)
     }
 }
