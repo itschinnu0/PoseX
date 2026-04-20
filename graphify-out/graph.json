@@ -1,0 +1,1162 @@
+{
+  "directed": false,
+  "multigraph": false,
+  "graph": {},
+  "nodes": [
+    {
+      "label": "build.gradle.kts",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\build.gradle.kts",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_build_gradle_kts",
+      "community": 18,
+      "norm_label": "build.gradle.kts"
+    },
+    {
+      "label": "settings.gradle.kts",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\settings.gradle.kts",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_settings_gradle_kts",
+      "community": 19,
+      "norm_label": "settings.gradle.kts"
+    },
+    {
+      "label": "build.gradle.kts",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\build.gradle.kts",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_build_gradle_kts",
+      "community": 20,
+      "norm_label": "build.gradle.kts"
+    },
+    {
+      "label": "ExampleInstrumentedTest.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\androidTest\\java\\com\\example\\posex\\ExampleInstrumentedTest.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_androidtest_java_com_example_posex_exampleinstrumentedtest_kt",
+      "community": 8,
+      "norm_label": "exampleinstrumentedtest.kt"
+    },
+    {
+      "label": "ExampleInstrumentedTest",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\androidTest\\java\\com\\example\\posex\\ExampleInstrumentedTest.kt",
+      "source_location": "L16",
+      "id": "exampleinstrumentedtest_exampleinstrumentedtest",
+      "community": 8,
+      "norm_label": "exampleinstrumentedtest"
+    },
+    {
+      "label": ".useAppContext()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\androidTest\\java\\com\\example\\posex\\ExampleInstrumentedTest.kt",
+      "source_location": "L18",
+      "id": "exampleinstrumentedtest_exampleinstrumentedtest_useappcontext",
+      "community": 8,
+      "norm_label": ".useappcontext()"
+    },
+    {
+      "label": "MainActivity.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_mainactivity_kt",
+      "community": 2,
+      "norm_label": "mainactivity.kt"
+    },
+    {
+      "label": "MainActivity",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L13",
+      "id": "mainactivity_mainactivity",
+      "community": 2,
+      "norm_label": "mainactivity"
+    },
+    {
+      "label": ".onCreate()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L14",
+      "id": "mainactivity_mainactivity_oncreate",
+      "community": 2,
+      "norm_label": ".oncreate()"
+    },
+    {
+      "label": "PoseXApp()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L25",
+      "id": "mainactivity_posexapp",
+      "community": 2,
+      "norm_label": "posexapp()"
+    },
+    {
+      "label": "ExerciseAnalysisResult.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\ExerciseAnalysisResult.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_exerciseanalysisresult_kt",
+      "community": 13,
+      "norm_label": "exerciseanalysisresult.kt"
+    },
+    {
+      "label": "ExerciseAnalysisResult",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\ExerciseAnalysisResult.kt",
+      "source_location": "L3",
+      "id": "exerciseanalysisresult_exerciseanalysisresult",
+      "community": 13,
+      "norm_label": "exerciseanalysisresult"
+    },
+    {
+      "label": "ExerciseType.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\ExerciseType.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_exercisetype_kt",
+      "community": 14,
+      "norm_label": "exercisetype.kt"
+    },
+    {
+      "label": "ExerciseType",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\ExerciseType.kt",
+      "source_location": "L3",
+      "id": "exercisetype_exercisetype",
+      "community": 14,
+      "norm_label": "exercisetype"
+    },
+    {
+      "label": "PlankAnalyzer.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_plankanalyzer_kt",
+      "community": 3,
+      "norm_label": "plankanalyzer.kt"
+    },
+    {
+      "label": "PlankAnalyzer",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L7",
+      "id": "plankanalyzer_plankanalyzer",
+      "community": 3,
+      "norm_label": "plankanalyzer"
+    },
+    {
+      "label": ".resetRepCounter()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L13",
+      "id": "plankanalyzer_plankanalyzer_resetrepcounter",
+      "community": 3,
+      "norm_label": ".resetrepcounter()"
+    },
+    {
+      "label": ".analyze()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L18",
+      "id": "plankanalyzer_plankanalyzer_analyze",
+      "community": 3,
+      "norm_label": ".analyze()"
+    },
+    {
+      "label": "PoseUtils.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PoseUtils.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_poseutils_kt",
+      "community": 9,
+      "norm_label": "poseutils.kt"
+    },
+    {
+      "label": "PoseUtils",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PoseUtils.kt",
+      "source_location": "L6",
+      "id": "poseutils_poseutils",
+      "community": 9,
+      "norm_label": "poseutils"
+    },
+    {
+      "label": ".calculateAngle()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PoseUtils.kt",
+      "source_location": "L8",
+      "id": "poseutils_poseutils_calculateangle",
+      "community": 9,
+      "norm_label": ".calculateangle()"
+    },
+    {
+      "label": "PushupAnalyzer.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_pushupanalyzer_kt",
+      "community": 4,
+      "norm_label": "pushupanalyzer.kt"
+    },
+    {
+      "label": "PushupAnalyzer",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L7",
+      "id": "pushupanalyzer_pushupanalyzer",
+      "community": 4,
+      "norm_label": "pushupanalyzer"
+    },
+    {
+      "label": ".resetRepCounter()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L12",
+      "id": "pushupanalyzer_pushupanalyzer_resetrepcounter",
+      "community": 4,
+      "norm_label": ".resetrepcounter()"
+    },
+    {
+      "label": ".analyze()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L16",
+      "id": "pushupanalyzer_pushupanalyzer_analyze",
+      "community": 4,
+      "norm_label": ".analyze()"
+    },
+    {
+      "label": "RepCounter.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_repcounter_kt",
+      "community": 1,
+      "norm_label": "repcounter.kt"
+    },
+    {
+      "label": "RepCounter",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L3",
+      "id": "repcounter_repcounter",
+      "community": 1,
+      "norm_label": "repcounter"
+    },
+    {
+      "label": ".updateReps()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L10",
+      "id": "repcounter_repcounter_updatereps",
+      "community": 1,
+      "norm_label": ".updatereps()"
+    },
+    {
+      "label": ".getRepCount()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L23",
+      "id": "repcounter_repcounter_getrepcount",
+      "community": 1,
+      "norm_label": ".getrepcount()"
+    },
+    {
+      "label": ".reset()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L25",
+      "id": "repcounter_repcounter_reset",
+      "community": 1,
+      "norm_label": ".reset()"
+    },
+    {
+      "label": "SquatsAnalyzer.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_squatsanalyzer_kt",
+      "community": 5,
+      "norm_label": "squatsanalyzer.kt"
+    },
+    {
+      "label": "SquatsAnalyzer",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L8",
+      "id": "squatsanalyzer_squatsanalyzer",
+      "community": 5,
+      "norm_label": "squatsanalyzer"
+    },
+    {
+      "label": ".resetRepCounter()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L13",
+      "id": "squatsanalyzer_squatsanalyzer_resetrepcounter",
+      "community": 5,
+      "norm_label": ".resetrepcounter()"
+    },
+    {
+      "label": ".analyze()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L17",
+      "id": "squatsanalyzer_squatsanalyzer_analyze",
+      "community": 5,
+      "norm_label": ".analyze()"
+    },
+    {
+      "label": "FeedbackEngine.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_feedback_feedbackengine_kt",
+      "community": 6,
+      "norm_label": "feedbackengine.kt"
+    },
+    {
+      "label": "FeedbackEngine",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L7",
+      "id": "feedbackengine_feedbackengine",
+      "community": 6,
+      "norm_label": "feedbackengine"
+    },
+    {
+      "label": ".speak()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L24",
+      "id": "feedbackengine_feedbackengine_speak",
+      "community": 6,
+      "norm_label": ".speak()"
+    },
+    {
+      "label": ".shutdown()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L32",
+      "id": "feedbackengine_feedbackengine_shutdown",
+      "community": 6,
+      "norm_label": ".shutdown()"
+    },
+    {
+      "label": "PoseAnalyzer.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_pose_poseanalyzer_kt",
+      "community": 7,
+      "norm_label": "poseanalyzer.kt"
+    },
+    {
+      "label": "PoseAnalyzer",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L11",
+      "id": "poseanalyzer_poseanalyzer",
+      "community": 7,
+      "norm_label": "poseanalyzer"
+    },
+    {
+      "label": ".analyze()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L22",
+      "id": "poseanalyzer_poseanalyzer_analyze",
+      "community": 7,
+      "norm_label": ".analyze()"
+    },
+    {
+      "label": ".shutdown()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L47",
+      "id": "poseanalyzer_poseanalyzer_shutdown",
+      "community": 7,
+      "norm_label": ".shutdown()"
+    },
+    {
+      "label": "CameraPreview.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
+      "community": 10,
+      "norm_label": "camerapreview.kt"
+    },
+    {
+      "label": "CameraPreview()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
+      "source_location": "L19",
+      "id": "camerapreview_camerapreview",
+      "community": 10,
+      "norm_label": "camerapreview()"
+    },
+    {
+      "label": "startCamera()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
+      "source_location": "L47",
+      "id": "camerapreview_startcamera",
+      "community": 10,
+      "norm_label": "startcamera()"
+    },
+    {
+      "label": "PoseOverlay.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\PoseOverlay.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_poseoverlay_kt",
+      "community": 15,
+      "norm_label": "poseoverlay.kt"
+    },
+    {
+      "label": "PoseOverlay()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\PoseOverlay.kt",
+      "source_location": "L11",
+      "id": "poseoverlay_poseoverlay",
+      "community": 15,
+      "norm_label": "poseoverlay()"
+    },
+    {
+      "label": "HomeScreen.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\HomeScreen.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_homescreen_kt",
+      "community": 11,
+      "norm_label": "homescreen.kt"
+    },
+    {
+      "label": "HomeScreen()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\HomeScreen.kt",
+      "source_location": "L21",
+      "id": "homescreen_homescreen",
+      "community": 11,
+      "norm_label": "homescreen()"
+    },
+    {
+      "label": "ExerciseCard()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\HomeScreen.kt",
+      "source_location": "L74",
+      "id": "homescreen_exercisecard",
+      "community": 11,
+      "norm_label": "exercisecard()"
+    },
+    {
+      "label": "WorkoutScreen.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\WorkoutScreen.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_workoutscreen_kt",
+      "community": 16,
+      "norm_label": "workoutscreen.kt"
+    },
+    {
+      "label": "WorkoutScreen()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\WorkoutScreen.kt",
+      "source_location": "L34",
+      "id": "workoutscreen_workoutscreen",
+      "community": 16,
+      "norm_label": "workoutscreen()"
+    },
+    {
+      "label": "Color.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\theme\\Color.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_theme_color_kt",
+      "community": 21,
+      "norm_label": "color.kt"
+    },
+    {
+      "label": "Theme.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\theme\\Theme.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_theme_theme_kt",
+      "community": 17,
+      "norm_label": "theme.kt"
+    },
+    {
+      "label": "PoseXTheme()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\theme\\Theme.kt",
+      "source_location": "L36",
+      "id": "theme_posextheme",
+      "community": 17,
+      "norm_label": "posextheme()"
+    },
+    {
+      "label": "Type.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\theme\\Type.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_theme_type_kt",
+      "community": 22,
+      "norm_label": "type.kt"
+    },
+    {
+      "label": "ExampleUnitTest.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\ExampleUnitTest.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_test_java_com_example_posex_exampleunittest_kt",
+      "community": 12,
+      "norm_label": "exampleunittest.kt"
+    },
+    {
+      "label": "ExampleUnitTest",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\ExampleUnitTest.kt",
+      "source_location": "L12",
+      "id": "exampleunittest_exampleunittest",
+      "community": 12,
+      "norm_label": "exampleunittest"
+    },
+    {
+      "label": ".addition_isCorrect()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\ExampleUnitTest.kt",
+      "source_location": "L13",
+      "id": "exampleunittest_exampleunittest_addition_iscorrect",
+      "community": 12,
+      "norm_label": ".addition_iscorrect()"
+    },
+    {
+      "label": "RepCounterTest.kt",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L1",
+      "id": "c_users_chinnu0_desktop_posex_app_src_test_java_com_example_posex_exercise_repcountertest_kt",
+      "community": 0,
+      "norm_label": "repcountertest.kt"
+    },
+    {
+      "label": "RepCounterTest",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L7",
+      "id": "repcountertest_repcountertest",
+      "community": 0,
+      "norm_label": "repcountertest"
+    },
+    {
+      "label": ".setUp()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L11",
+      "id": "repcountertest_repcountertest_setup",
+      "community": 0,
+      "norm_label": ".setup()"
+    },
+    {
+      "label": ".testNoRepsCountedWhenStayingAtTop()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L16",
+      "id": "repcountertest_repcountertest_testnorepscountedwhenstayingattop",
+      "community": 0,
+      "norm_label": ".testnorepscountedwhenstayingattop()"
+    },
+    {
+      "label": ".testNoRepsCountedWhenStayingAtBottom()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L24",
+      "id": "repcountertest_repcountertest_testnorepscountedwhenstayingatbottom",
+      "community": 0,
+      "norm_label": ".testnorepscountedwhenstayingatbottom()"
+    },
+    {
+      "label": ".testOneRepCounted()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L32",
+      "id": "repcountertest_repcountertest_testonerepcounted",
+      "community": 0,
+      "norm_label": ".testonerepcounted()"
+    },
+    {
+      "label": ".testMultipleRepsCounted()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L49",
+      "id": "repcountertest_repcountertest_testmultiplerepscounted",
+      "community": 0,
+      "norm_label": ".testmultiplerepscounted()"
+    },
+    {
+      "label": ".testNoDoubleCountAtThresholdHysteresis()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L69",
+      "id": "repcountertest_repcountertest_testnodoublecountatthresholdhysteresis",
+      "community": 0,
+      "norm_label": ".testnodoublecountatthresholdhysteresis()"
+    },
+    {
+      "label": ".testResetFunctionality()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L89",
+      "id": "repcountertest_repcountertest_testresetfunctionality",
+      "community": 0,
+      "norm_label": ".testresetfunctionality()"
+    }
+  ],
+  "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\androidTest\\java\\com\\example\\posex\\ExampleInstrumentedTest.kt",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_androidtest_java_com_example_posex_exampleinstrumentedtest_kt",
+      "_tgt": "exampleinstrumentedtest_exampleinstrumentedtest",
+      "source": "c_users_chinnu0_desktop_posex_app_src_androidtest_java_com_example_posex_exampleinstrumentedtest_kt",
+      "target": "exampleinstrumentedtest_exampleinstrumentedtest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\androidTest\\java\\com\\example\\posex\\ExampleInstrumentedTest.kt",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_src": "exampleinstrumentedtest_exampleinstrumentedtest",
+      "_tgt": "exampleinstrumentedtest_exampleinstrumentedtest_useappcontext",
+      "source": "exampleinstrumentedtest_exampleinstrumentedtest",
+      "target": "exampleinstrumentedtest_exampleinstrumentedtest_useappcontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_mainactivity_kt",
+      "_tgt": "mainactivity_mainactivity",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_mainactivity_kt",
+      "target": "mainactivity_mainactivity",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_mainactivity_kt",
+      "_tgt": "mainactivity_posexapp",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_mainactivity_kt",
+      "target": "mainactivity_posexapp",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "mainactivity_mainactivity",
+      "_tgt": "mainactivity_mainactivity_oncreate",
+      "source": "mainactivity_mainactivity",
+      "target": "mainactivity_mainactivity_oncreate",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\ExerciseAnalysisResult.kt",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_exerciseanalysisresult_kt",
+      "_tgt": "exerciseanalysisresult_exerciseanalysisresult",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_exerciseanalysisresult_kt",
+      "target": "exerciseanalysisresult_exerciseanalysisresult",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\ExerciseType.kt",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_exercisetype_kt",
+      "_tgt": "exercisetype_exercisetype",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_exercisetype_kt",
+      "target": "exercisetype_exercisetype",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_plankanalyzer_kt",
+      "_tgt": "plankanalyzer_plankanalyzer",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_plankanalyzer_kt",
+      "target": "plankanalyzer_plankanalyzer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "plankanalyzer_plankanalyzer",
+      "_tgt": "plankanalyzer_plankanalyzer_resetrepcounter",
+      "source": "plankanalyzer_plankanalyzer",
+      "target": "plankanalyzer_plankanalyzer_resetrepcounter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PlankAnalyzer.kt",
+      "source_location": "L18",
+      "weight": 1.0,
+      "_src": "plankanalyzer_plankanalyzer",
+      "_tgt": "plankanalyzer_plankanalyzer_analyze",
+      "source": "plankanalyzer_plankanalyzer",
+      "target": "plankanalyzer_plankanalyzer_analyze",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PoseUtils.kt",
+      "source_location": "L6",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_poseutils_kt",
+      "_tgt": "poseutils_poseutils",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_poseutils_kt",
+      "target": "poseutils_poseutils",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PoseUtils.kt",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "poseutils_poseutils",
+      "_tgt": "poseutils_poseutils_calculateangle",
+      "source": "poseutils_poseutils",
+      "target": "poseutils_poseutils_calculateangle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_pushupanalyzer_kt",
+      "_tgt": "pushupanalyzer_pushupanalyzer",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_pushupanalyzer_kt",
+      "target": "pushupanalyzer_pushupanalyzer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "pushupanalyzer_pushupanalyzer",
+      "_tgt": "pushupanalyzer_pushupanalyzer_resetrepcounter",
+      "source": "pushupanalyzer_pushupanalyzer",
+      "target": "pushupanalyzer_pushupanalyzer_resetrepcounter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\PushupAnalyzer.kt",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "pushupanalyzer_pushupanalyzer",
+      "_tgt": "pushupanalyzer_pushupanalyzer_analyze",
+      "source": "pushupanalyzer_pushupanalyzer",
+      "target": "pushupanalyzer_pushupanalyzer_analyze",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_repcounter_kt",
+      "_tgt": "repcounter_repcounter",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_repcounter_kt",
+      "target": "repcounter_repcounter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L10",
+      "weight": 1.0,
+      "_src": "repcounter_repcounter",
+      "_tgt": "repcounter_repcounter_updatereps",
+      "source": "repcounter_repcounter",
+      "target": "repcounter_repcounter_updatereps",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "repcounter_repcounter",
+      "_tgt": "repcounter_repcounter_getrepcount",
+      "source": "repcounter_repcounter",
+      "target": "repcounter_repcounter_getrepcount",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\RepCounter.kt",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_src": "repcounter_repcounter",
+      "_tgt": "repcounter_repcounter_reset",
+      "source": "repcounter_repcounter",
+      "target": "repcounter_repcounter_reset",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_squatsanalyzer_kt",
+      "_tgt": "squatsanalyzer_squatsanalyzer",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_squatsanalyzer_kt",
+      "target": "squatsanalyzer_squatsanalyzer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "squatsanalyzer_squatsanalyzer",
+      "_tgt": "squatsanalyzer_squatsanalyzer_resetrepcounter",
+      "source": "squatsanalyzer_squatsanalyzer",
+      "target": "squatsanalyzer_squatsanalyzer_resetrepcounter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\SquatsAnalyzer.kt",
+      "source_location": "L17",
+      "weight": 1.0,
+      "_src": "squatsanalyzer_squatsanalyzer",
+      "_tgt": "squatsanalyzer_squatsanalyzer_analyze",
+      "source": "squatsanalyzer_squatsanalyzer",
+      "target": "squatsanalyzer_squatsanalyzer_analyze",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_feedback_feedbackengine_kt",
+      "_tgt": "feedbackengine_feedbackengine",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_feedback_feedbackengine_kt",
+      "target": "feedbackengine_feedbackengine",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_src": "feedbackengine_feedbackengine",
+      "_tgt": "feedbackengine_feedbackengine_speak",
+      "source": "feedbackengine_feedbackengine",
+      "target": "feedbackengine_feedbackengine_speak",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\FeedbackEngine.kt",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_src": "feedbackengine_feedbackengine",
+      "_tgt": "feedbackengine_feedbackengine_shutdown",
+      "source": "feedbackengine_feedbackengine",
+      "target": "feedbackengine_feedbackengine_shutdown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_pose_poseanalyzer_kt",
+      "_tgt": "poseanalyzer_poseanalyzer",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_pose_poseanalyzer_kt",
+      "target": "poseanalyzer_poseanalyzer",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "poseanalyzer_poseanalyzer",
+      "_tgt": "poseanalyzer_poseanalyzer_analyze",
+      "source": "poseanalyzer_poseanalyzer",
+      "target": "poseanalyzer_poseanalyzer_analyze",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\pose\\PoseAnalyzer.kt",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_src": "poseanalyzer_poseanalyzer",
+      "_tgt": "poseanalyzer_poseanalyzer_shutdown",
+      "source": "poseanalyzer_poseanalyzer",
+      "target": "poseanalyzer_poseanalyzer_shutdown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
+      "source_location": "L19",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
+      "_tgt": "camerapreview_camerapreview",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
+      "target": "camerapreview_camerapreview",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
+      "source_location": "L47",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
+      "_tgt": "camerapreview_startcamera",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
+      "target": "camerapreview_startcamera",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\PoseOverlay.kt",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_poseoverlay_kt",
+      "_tgt": "poseoverlay_poseoverlay",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_poseoverlay_kt",
+      "target": "poseoverlay_poseoverlay",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\HomeScreen.kt",
+      "source_location": "L21",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_homescreen_kt",
+      "_tgt": "homescreen_homescreen",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_homescreen_kt",
+      "target": "homescreen_homescreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\HomeScreen.kt",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_homescreen_kt",
+      "_tgt": "homescreen_exercisecard",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_homescreen_kt",
+      "target": "homescreen_exercisecard",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\WorkoutScreen.kt",
+      "source_location": "L34",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_workoutscreen_kt",
+      "_tgt": "workoutscreen_workoutscreen",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_workoutscreen_kt",
+      "target": "workoutscreen_workoutscreen",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\theme\\Theme.kt",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_theme_theme_kt",
+      "_tgt": "theme_posextheme",
+      "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_theme_theme_kt",
+      "target": "theme_posextheme",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\ExampleUnitTest.kt",
+      "source_location": "L12",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_test_java_com_example_posex_exampleunittest_kt",
+      "_tgt": "exampleunittest_exampleunittest",
+      "source": "c_users_chinnu0_desktop_posex_app_src_test_java_com_example_posex_exampleunittest_kt",
+      "target": "exampleunittest_exampleunittest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\ExampleUnitTest.kt",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_src": "exampleunittest_exampleunittest",
+      "_tgt": "exampleunittest_exampleunittest_addition_iscorrect",
+      "source": "exampleunittest_exampleunittest",
+      "target": "exampleunittest_exampleunittest_addition_iscorrect",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_src": "c_users_chinnu0_desktop_posex_app_src_test_java_com_example_posex_exercise_repcountertest_kt",
+      "_tgt": "repcountertest_repcountertest",
+      "source": "c_users_chinnu0_desktop_posex_app_src_test_java_com_example_posex_exercise_repcountertest_kt",
+      "target": "repcountertest_repcountertest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L11",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_setup",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L16",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_testnorepscountedwhenstayingattop",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_testnorepscountedwhenstayingattop",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L24",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_testnorepscountedwhenstayingatbottom",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_testnorepscountedwhenstayingatbottom",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_testonerepcounted",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_testonerepcounted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_testmultiplerepscounted",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_testmultiplerepscounted",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L69",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_testnodoublecountatthresholdhysteresis",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_testnodoublecountatthresholdhysteresis",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\test\\java\\com\\example\\posex\\exercise\\RepCounterTest.kt",
+      "source_location": "L89",
+      "weight": 1.0,
+      "_src": "repcountertest_repcountertest",
+      "_tgt": "repcountertest_repcountertest_testresetfunctionality",
+      "source": "repcountertest_repcountertest",
+      "target": "repcountertest_repcountertest_testresetfunctionality",
+      "confidence_score": 1.0
+    }
+  ],
+  "hyperedges": []
+}

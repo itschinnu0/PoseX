@@ -1,15 +1,22 @@
+# --- Existing Android & IDE Rules ---
 *.iml
-.gradle
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+.gradle/
 local.properties
+.idea/caches/
+.idea/libraries/
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# --- Graphifyy (New) ---
+# Ignore the heavy raw data and indices, but keep the reports
+graphify-out/raw/
+graphify-out/cache/
+graphify-out/indices/
+
