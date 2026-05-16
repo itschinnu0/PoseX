@@ -7,7 +7,11 @@ import kotlin.math.abs
 object PushupAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
-    private val repCounter = RepCounter(bottomThreshold = 60.0, topThreshold = 140.0)
+
+    private val repCounter = CalibratingRepCounter(
+        fallbackBottom = 60.0,
+        fallbackTop = 140.0
+    )
 
     fun resetRepCounter() {
         repCounter.reset()
@@ -38,36 +42,21 @@ object PushupAnalyzer {
                 "Move into frame so your upper body is fully visible",
                 FormCue.Severity.INFO
             ))
-            return ExerciseAnalysisResult(cues, repCounter.getRepCount(), null)
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = repCounter.getRepCount(),
+                metricValue = null,
+                isCalibrating = repCounter.isCalibrating()
+            )
         }
 
         val leftElbowAngle = PoseUtils.calculateAngle(leftShoulder!!, leftElbow!!, leftWrist!!)
         val rightElbowAngle = PoseUtils.calculateAngle(rightShoulder!!, rightElbow!!, rightWrist!!)
         val avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2
 
-        val reps = repCounter.updateReps(avgElbowAngle)
+        // ── Form checks before updateReps ─────────────────────────────────
 
-        // Range of motion — WARNING: rep won't count if range is insufficient
-        when {
-            avgElbowAngle > 160 -> cues.add(FormCue(
-                "Lower your chest, bend your elbows more",
-                FormCue.Severity.WARNING
-            ))
-            avgElbowAngle < 45 -> cues.add(FormCue(
-                "Push up, do not collapse your arms",
-                FormCue.Severity.WARNING
-            ))
-        }
-
-        // Asymmetry — WARNING: muscle imbalance indicator, also injury risk over time
-        if (abs(leftElbowAngle - rightElbowAngle) > 15) {
-            cues.add(FormCue(
-                "Keep both arms even, one side is lower than the other",
-                FormCue.Severity.WARNING
-            ))
-        }
-
-        // Body sag/pike — CRITICAL: spinal load risk
+        // Body sag/pike — CRITICAL
         val shoulderMidY = (leftShoulder.position.y + rightShoulder.position.y) / 2
         val hipMidY = (leftHip!!.position.y + rightHip!!.position.y) / 2
 
@@ -77,7 +66,6 @@ object PushupAnalyzer {
         ) {
             val ankleMidY = (leftAnkle.position.y + rightAnkle.position.y) / 2
             val bodyLineDeviation = hipMidY - ((shoulderMidY + ankleMidY) / 2)
-
             when {
                 bodyLineDeviation > 40 -> cues.add(FormCue(
                     "Lift your hips, your body is sagging",
@@ -90,10 +78,48 @@ object PushupAnalyzer {
             }
         }
 
-        if (cues.isEmpty()) {
+        // Range of motion — WARNING
+        when {
+            avgElbowAngle > 160 -> cues.add(FormCue(
+                "Lower your chest, bend your elbows more",
+                FormCue.Severity.WARNING
+            ))
+            avgElbowAngle < 45 -> cues.add(FormCue(
+                "Push up, do not collapse your arms",
+                FormCue.Severity.WARNING
+            ))
+        }
+
+        // Asymmetry — WARNING
+        if (abs(leftElbowAngle - rightElbowAngle) > 15) {
+            cues.add(FormCue(
+                "Keep both arms even, one side is lower than the other",
+                FormCue.Severity.WARNING
+            ))
+        }
+
+        val formValid = cues.none { it.severity == FormCue.Severity.CRITICAL }
+
+        if (repCounter.isCalibrating()) {
+            cues.add(FormCue(
+                "Perform one full push-up to calibrate",
+                FormCue.Severity.INFO
+            ))
+        }
+
+        val reps = repCounter.updateReps(avgElbowAngle, formValid)
+
+        if (cues.none { it.severity != FormCue.Severity.INFO } && !repCounter.lastRepRejected) {
             cues.add(FormCue("Good form, keep going", FormCue.Severity.SUCCESS))
         }
 
-        return ExerciseAnalysisResult(cues, reps, avgElbowAngle)
+        return ExerciseAnalysisResult(
+            cues = cues,
+            repCount = reps,
+            metricValue = avgElbowAngle,
+            isCalibrating = repCounter.isCalibrating(),
+            repRejected = repCounter.lastRepRejected,
+            rejectionReason = repCounter.rejectionReason
+        )
     }
 }

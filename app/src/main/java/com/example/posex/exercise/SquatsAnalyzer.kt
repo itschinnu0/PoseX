@@ -7,7 +7,13 @@ import kotlin.math.abs
 object SquatsAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
-    private val repCounter = RepCounter(bottomThreshold = 100.0, topThreshold = 140.0)
+
+    // Fallback thresholds used if calibration range is too small.
+    // Also used as the calibration detection anchors.
+    private val repCounter = CalibratingRepCounter(
+        fallbackBottom = 100.0,
+        fallbackTop = 140.0
+    )
 
     fun resetRepCounter() {
         repCounter.reset()
@@ -28,12 +34,9 @@ object SquatsAnalyzer {
         val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
 
         val leftConfidence = listOf(leftHip, leftKnee, leftAnkle, leftShoulder)
-            .mapNotNull { it?.inFrameLikelihood }
-            .average()
-
+            .mapNotNull { it?.inFrameLikelihood }.average()
         val rightConfidence = listOf(rightHip, rightKnee, rightAnkle, rightShoulder)
-            .mapNotNull { it?.inFrameLikelihood }
-            .average()
+            .mapNotNull { it?.inFrameLikelihood }.average()
 
         val usLeft = leftConfidence >= rightConfidence
 
@@ -51,13 +54,45 @@ object SquatsAnalyzer {
                 "Move into frame so your full body is visible from the side",
                 FormCue.Severity.INFO
             ))
-            return ExerciseAnalysisResult(cues, repCounter.getRepCount(), null)
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = repCounter.getRepCount(),
+                metricValue = null,
+                isCalibrating = repCounter.isCalibrating()
+            )
         }
 
         kneeAngle = PoseUtils.calculateAngle(hip, knee, ankle)
-        val reps = repCounter.updateReps(kneeAngle)
 
-        // Depth issues — WARNING: directly affect rep validity
+        // ── Form checks — done BEFORE updateReps so formValid reflects ────
+        // the current frame accurately when passed to the counter
+
+        // Torso lean — CRITICAL
+        if (shoulder != null && shoulder.inFrameLikelihood > MIN_CONFIDENCE) {
+            val diff = shoulder.position.x - hip.position.x
+            if (abs(diff) > 60) {
+                cues.add(FormCue(
+                    "Keep your chest up, do not lean forward",
+                    FormCue.Severity.CRITICAL
+                ))
+            } else if (abs(diff) < 20 && abs(diff) > 5) {
+                cues.add(FormCue(
+                    "Keep your chest up, do not lean backward",
+                    FormCue.Severity.WARNING
+                ))
+            }
+        }
+
+        // Knee over toe — CRITICAL
+        val kneeAnkleDiff = abs(knee.position.x - ankle.position.x)
+        if (kneeAnkleDiff > 80) {
+            cues.add(FormCue(
+                "Do not let your knees go past your toes",
+                FormCue.Severity.CRITICAL
+            ))
+        }
+
+        // Depth — WARNING (not a safety issue, a quality issue)
         when {
             kneeAngle > 160 -> cues.add(FormCue(
                 "Go lower, bend your knees more",
@@ -69,36 +104,30 @@ object SquatsAnalyzer {
             ))
         }
 
-        // Torso lean — CRITICAL: forward lean under load risks lower back injury
-        if (shoulder != null && shoulder.inFrameLikelihood > MIN_CONFIDENCE) {
-            val shoulderHipHorizontalDiff = shoulder.position.x - hip.position.x
+        // formValid = no CRITICAL cues this frame
+        val formValid = cues.none { it.severity == FormCue.Severity.CRITICAL }
 
-            if (abs(shoulderHipHorizontalDiff) > 60) {
-                cues.add(FormCue(
-                    "Keep your chest up, do not lean forward",
-                    FormCue.Severity.CRITICAL
-                ))
-            } else if (abs(shoulderHipHorizontalDiff) < 20 && abs(shoulderHipHorizontalDiff) > 5) {
-                cues.add(FormCue(
-                    "Keep your chest up, do not lean backward",
-                    FormCue.Severity.WARNING
-                ))
-            }
-        }
-
-        // Knee over toe — CRITICAL: knee past toe under load risks knee injury
-        val kneeAnkleHorizontalDiff = abs(knee.position.x - ankle.position.x)
-        if (kneeAnkleHorizontalDiff > 80) {
+        // Show calibration hint during first rep
+        if (repCounter.isCalibrating()) {
             cues.add(FormCue(
-                "Do not let your knees go past your toes",
-                FormCue.Severity.CRITICAL
+                "Perform one full squat to calibrate",
+                FormCue.Severity.INFO
             ))
         }
 
-        if (cues.isEmpty()) {
+        val reps = repCounter.updateReps(kneeAngle, formValid)
+
+        if (cues.none { it.severity != FormCue.Severity.INFO } && !repCounter.lastRepRejected) {
             cues.add(FormCue("Good form, keep going", FormCue.Severity.SUCCESS))
         }
 
-        return ExerciseAnalysisResult(cues, reps, kneeAngle)
+        return ExerciseAnalysisResult(
+            cues = cues,
+            repCount = reps,
+            metricValue = kneeAngle,
+            isCalibrating = repCounter.isCalibrating(),
+            repRejected = repCounter.lastRepRejected,
+            rejectionReason = repCounter.rejectionReason
+        )
     }
 }

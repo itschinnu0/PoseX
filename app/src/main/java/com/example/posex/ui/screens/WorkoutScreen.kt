@@ -28,6 +28,7 @@ import com.example.posex.exercise.ExerciseAnalysisResult
 import com.example.posex.exercise.ExerciseType
 import com.example.posex.exercise.FormCue
 import com.example.posex.exercise.PlankAnalyzer
+import com.example.posex.exercise.PoseReadinessChecker
 import com.example.posex.exercise.PushupAnalyzer
 import com.example.posex.exercise.SquatsAnalyzer
 import com.example.posex.exercise.WorkoutSession
@@ -73,13 +74,16 @@ fun WorkoutScreen(
     var lastResult by remember { mutableStateOf<ExerciseAnalysisResult?>(null) }
     var workoutState by remember { mutableStateOf<WorkoutState>(WorkoutState.Idle) }
 
+    // Shown briefly after a rep is rejected — cleared on next successful rep
+    var rejectionText by remember { mutableStateOf("") }
+
     val feedbackEngine = remember { FeedbackEngine(context) }
     val storageService = remember { StorageService(context) }
-
-    // Session ID generated once per WorkoutScreen instance.
-    // Using remember ensures it doesn't regenerate on recomposition.
     val sessionId = remember { UUID.randomUUID().toString() }
     val sessionStartDate = remember { System.currentTimeMillis() }
+
+    val warningFrameCounts = remember { mutableMapOf<String, Int>() }
+    val warningFrameThreshold = 5
 
     val session = remember {
         WorkoutSession(
@@ -90,6 +94,10 @@ fun WorkoutScreen(
                 feedbackEngine.setWorkoutState(newState)
                 if (newState is WorkoutState.Countdown) {
                     feedbackEngine.speakCountdown(newState.secondsRemaining)
+                }
+                if (newState !is WorkoutState.Active) {
+                    warningFrameCounts.clear()
+                    rejectionText = ""
                 }
             }
         )
@@ -107,23 +115,16 @@ fun WorkoutScreen(
         }
     }
 
-    /**
-     * Builds a SessionRecord from current session state and persists it.
-     * Safe to call from Stop or on target completion.
-     * Only saves if the session was ever Active (duration > 0) — avoids
-     * saving empty sessions when the user opens and immediately stops.
-     */
     fun saveAndExit() {
         val durationMs = session.getSessionDurationMs()
         if (durationMs > 0L) {
-            val result = lastResult
             storageService.saveSession(
                 SessionRecord(
                     id           = sessionId,
                     exerciseType = exerciseType.name,
                     date         = sessionStartDate,
-                    repCount     = result?.repCount ?: 0,
-                    holdSeconds  = result?.holdDurationSeconds ?: 0,
+                    repCount     = lastResult?.repCount ?: 0,
+                    holdSeconds  = lastResult?.holdDurationSeconds ?: 0,
                     durationMs   = durationMs,
                     criticalCues = session.getCriticalCueCount(),
                     warningCues  = session.getWarningCueCount()
@@ -135,9 +136,18 @@ fun WorkoutScreen(
         onExit()
     }
 
-    fun processPose(pose: Pose) {
+    fun handlePoseFrame(pose: Pose) {
+        // ── WaitingForPose ────────────────────────────────────────────────
+        if (session.isWaitingForPose()) {
+            val readiness = PoseReadinessChecker.check(pose, exerciseType)
+            session.updatePoseHint(readiness.hint)
+            if (readiness.isReady) session.onPoseReady()
+            return
+        }
+
         if (!session.isActive()) return
 
+        // ── Active ────────────────────────────────────────────────────────
         val result = when (exerciseType) {
             ExerciseType.SQUAT  -> SquatsAnalyzer.analyze(pose)
             ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
@@ -145,6 +155,35 @@ fun WorkoutScreen(
         }
 
         lastResult = result
+
+        // ── Rep rejected — show rejection reason, speak it, skip normal feedback
+        if (result.repRejected) {
+            rejectionText = result.rejectionReason
+            feedbackText = result.rejectionReason
+            feedbackColor = Color(0xFFFF5252)
+            feedbackEngine.speak(result.rejectionReason)
+            session.onRepUpdated(result.repCount)
+            return
+        }
+
+        // ── Calibration hint — override feedback during first rep ─────────
+        if (result.isCalibrating) {
+            val calibrationHint = when (exerciseType) {
+                ExerciseType.SQUAT  -> "Do one full squat to calibrate"
+                ExerciseType.PUSHUP -> "Do one full push-up to calibrate"
+                ExerciseType.PLANK  -> ""
+            }
+            if (calibrationHint.isNotEmpty()) {
+                feedbackText = calibrationHint
+                feedbackColor = Color(0xFFB0BEC5)
+                // Don't speak calibration hint — it would be too noisy
+                session.onRepUpdated(result.repCount)
+                return
+            }
+        }
+
+        // ── Normal feedback path ──────────────────────────────────────────
+        rejectionText = "" // clear any previous rejection on a clean frame
 
         val topCue = CuePrioritizer.topCue(result.cues) ?: return
 
@@ -156,19 +195,27 @@ fun WorkoutScreen(
             FormCue.Severity.SUCCESS  -> Color(0xFF00E676)
         }
 
-        // Record this cue in the session counters before speaking
-        session.recordCue(topCue.severity)
-
-        if (topCue.severity == FormCue.Severity.CRITICAL ||
-            topCue.severity == FormCue.Severity.WARNING
-        ) {
-            feedbackEngine.speak(topCue.message)
+        when (topCue.severity) {
+            FormCue.Severity.CRITICAL -> {
+                warningFrameCounts.clear()
+                session.recordCue(topCue.severity)
+                feedbackEngine.speak(topCue.message)
+            }
+            FormCue.Severity.WARNING -> {
+                val currentCount = (warningFrameCounts[topCue.message] ?: 0) + 1
+                warningFrameCounts.clear()
+                warningFrameCounts[topCue.message] = currentCount
+                if (currentCount >= warningFrameThreshold) {
+                    session.recordCue(topCue.severity)
+                    feedbackEngine.speak(topCue.message)
+                    warningFrameCounts[topCue.message] = 0
+                }
+            }
+            else -> warningFrameCounts.clear()
         }
 
         val completed = session.onRepUpdated(result.repCount)
-        if (completed) {
-            saveAndExit()
-        }
+        if (completed) saveAndExit()
     }
 
     if (!hasCameraPermission) {
@@ -197,7 +244,7 @@ fun WorkoutScreen(
                 currentPose = pose
                 imageWidth = width
                 imageHeight = height
-                processPose(pose)
+                handlePoseFrame(pose)
             },
             onError = { error ->
                 feedbackText = "Camera error: ${error.message}"
@@ -226,7 +273,7 @@ fun WorkoutScreen(
             }
         }
 
-        // ── Feedback banner — hidden during Countdown ─────────────────────
+        // ── Feedback banner ───────────────────────────────────────────────
         if (workoutState !is WorkoutState.Countdown) {
             Box(
                 modifier = Modifier
@@ -237,13 +284,15 @@ fun WorkoutScreen(
                     .padding(16.dp)
             ) {
                 Text(
-                    text = when (workoutState) {
-                        is WorkoutState.Idle   -> "Tap Start when ready"
-                        is WorkoutState.Paused -> "Paused — tap Resume to continue"
-                        else                   -> feedbackText
+                    text = when (val s = workoutState) {
+                        is WorkoutState.Idle           -> "Tap Start when ready"
+                        is WorkoutState.WaitingForPose -> s.hint
+                        is WorkoutState.Paused         -> "Paused — tap Resume to continue"
+                        else                           -> feedbackText
                     },
                     color = when (workoutState) {
                         is WorkoutState.Idle,
+                        is WorkoutState.WaitingForPose,
                         is WorkoutState.Paused -> Color(0xFFB0BEC5)
                         else                   -> feedbackColor
                     },
@@ -255,7 +304,7 @@ fun WorkoutScreen(
             }
         }
 
-        // ── Stop button — always visible ──────────────────────────────────
+        // ── Stop button ───────────────────────────────────────────────────
         Button(
             onClick = { saveAndExit() },
             modifier = Modifier
@@ -267,7 +316,7 @@ fun WorkoutScreen(
             Text(text = "Stop", color = Color.White)
         }
 
-        // ── Start / Pause / Resume — bottom center ────────────────────────
+        // ── Start / Pause / Resume ────────────────────────────────────────
         val actionLabel = when (workoutState) {
             is WorkoutState.Idle   -> "Start"
             is WorkoutState.Paused -> "Resume"
@@ -297,7 +346,7 @@ fun WorkoutScreen(
             }
         }
 
-        // ── Exercise label + rep/hold counter — top center ────────────────
+        // ── Exercise label + rep/hold counter ─────────────────────────────
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -312,6 +361,20 @@ fun WorkoutScreen(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )
+
+                // Show "Calibrating..." label during first rep
+                val isCalibrating = lastResult?.isCalibrating == true &&
+                        workoutState is WorkoutState.Active
+
+                if (isCalibrating) {
+                    Text(
+                        text = "Calibrating...",
+                        color = Color(0xFFFFB300),
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
+
                 if (exerciseType == ExerciseType.PLANK) {
                     Text(
                         text = "Hold: ${lastResult?.holdDurationSeconds ?: 0}s",

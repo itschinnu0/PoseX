@@ -6,25 +6,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * Owns workout state transitions, the countdown timer, session duration
+ * Owns workout state transitions, countdown timer, session duration
  * tracking, and per-session cue counters.
  *
- * [scope]          — composable's rememberCoroutineScope(); countdown job
- *                    is cancelled automatically when screen leaves composition.
- * [targetReps]     — when > 0, ACTIVE → COMPLETED automatically when repCount
- *                    reaches target. Pass 0 for open-ended session.
- * [onStateChanged] — called on every state transition.
- *
- * Duration tracking:
- *   - Starts when state first enters ACTIVE.
- *   - [getSessionDurationMs] returns elapsed ms at the moment it's called.
- *   - Pause time IS included in duration (no subtraction of paused intervals).
- *     Document this if you later add a rest timer.
- *
- * Cue counters:
- *   - [recordCue] must be called by WorkoutScreen on every cue shown to the user.
- *   - Counters only increment when state is ACTIVE — cues during countdown
- *     or pause are ignored even if recordCue is called.
+ * State machine:
+ *   IDLE → WAITING_FOR_POSE  (start())
+ *   WAITING_FOR_POSE → COUNTDOWN  (onPoseReady())
+ *   COUNTDOWN → ACTIVE       (countdown finishes)
+ *   ACTIVE → PAUSED          (pause())
+ *   PAUSED → WAITING_FOR_POSE (start() — re-checks pose before resuming)
+ *   any → IDLE               (stop())
  */
 class WorkoutSession(
     private val scope: CoroutineScope,
@@ -36,21 +27,45 @@ class WorkoutSession(
     var currentState: WorkoutState = WorkoutState.Idle
         private set
 
-    // Duration tracking
     private var activeStartTimeMs: Long = 0L
-
-    // Cue counters
     private var criticalCueCount: Int = 0
     private var warningCueCount: Int = 0
 
     // ── Public API ────────────────────────────────────────────────────────
 
+    /**
+     * Called when user taps Start (from Idle) or Resume (from Paused).
+     * Moves to WaitingForPose — countdown starts only after pose is confirmed.
+     */
     fun start() {
         when (currentState) {
             is WorkoutState.Idle,
-            is WorkoutState.Paused -> beginCountdown()
+            is WorkoutState.Paused -> {
+                countdownJob?.cancel()
+                PoseReadinessChecker.reset()
+                transition(WorkoutState.WaitingForPose("Get into position"))
+            }
             else -> Unit
         }
+    }
+
+    /**
+     * Called by WorkoutScreen every frame during WaitingForPose when
+     * PoseReadinessChecker confirms the pose is ready.
+     * Starts the countdown immediately.
+     */
+    fun onPoseReady() {
+        if (currentState !is WorkoutState.WaitingForPose) return
+        beginCountdown()
+    }
+
+    /**
+     * Called by WorkoutScreen every frame during WaitingForPose to
+     * update the hint message shown to the user.
+     */
+    fun updatePoseHint(hint: String) {
+        if (currentState !is WorkoutState.WaitingForPose) return
+        transition(WorkoutState.WaitingForPose(hint))
     }
 
     fun pause() {
@@ -62,6 +77,7 @@ class WorkoutSession(
 
     fun stop() {
         countdownJob?.cancel()
+        PoseReadinessChecker.reset()
         transition(WorkoutState.Idle)
     }
 
@@ -75,11 +91,7 @@ class WorkoutSession(
         return false
     }
 
-    /**
-     * Called by WorkoutScreen each time a cue is shown to the user.
-     * Only counts when state is Active — safe to call unconditionally.
-     */
-    fun recordCue(severity: com.example.posex.exercise.FormCue.Severity) {
+    fun recordCue(severity: FormCue.Severity) {
         if (currentState !is WorkoutState.Active) return
         when (severity) {
             FormCue.Severity.CRITICAL -> criticalCueCount++
@@ -88,11 +100,6 @@ class WorkoutSession(
         }
     }
 
-    /**
-     * Wall-clock ms elapsed since the session first entered ACTIVE state.
-     * Returns 0 if the session never became active.
-     * Pause time is included.
-     */
     fun getSessionDurationMs(): Long {
         if (activeStartTimeMs == 0L) return 0L
         return System.currentTimeMillis() - activeStartTimeMs
@@ -102,6 +109,7 @@ class WorkoutSession(
     fun getWarningCueCount(): Int = warningCueCount
 
     fun isActive(): Boolean = currentState is WorkoutState.Active
+    fun isWaitingForPose(): Boolean = currentState is WorkoutState.WaitingForPose
 
     // ── Private ───────────────────────────────────────────────────────────
 
@@ -123,7 +131,6 @@ class WorkoutSession(
                 else -> 0
             }
 
-            // Start duration clock the first time we enter Active
             if (activeStartTimeMs == 0L) {
                 activeStartTimeMs = System.currentTimeMillis()
             }
