@@ -16,7 +16,7 @@ object PlankAnalyzer {
     }
 
     fun analyze(pose: Pose): ExerciseAnalysisResult {
-        val feedback = mutableListOf<String>()
+        val cues = mutableListOf<FormCue>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
         val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
@@ -35,8 +35,11 @@ object PlankAnalyzer {
 
         if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
             holdStartTime = null
-            feedback.add("Move into frame so your full body is visible")
-            return ExerciseAnalysisResult(feedback, 0, null, totalHoldSeconds)
+            cues.add(FormCue(
+                "Move into frame so your full body is visible",
+                FormCue.Severity.INFO
+            ))
+            return ExerciseAnalysisResult(cues, 0, null, totalHoldSeconds)
         }
 
         val shoulderMidY = (leftShoulder!!.position.y + rightShoulder!!.position.y) / 2
@@ -50,24 +53,28 @@ object PlankAnalyzer {
                 ((hipMidX - shoulderMidX) / (ankleMidX - shoulderMidX + 0.001f))
 
         val hipDeviation = (hipMidY - expectedHipY)
-
         val isGoodForm = hipDeviation in -40.0..40.0
 
-        // Track hold duration only when form is correct
         if (isGoodForm) {
-            if (holdStartTime == null) {
-                holdStartTime = System.currentTimeMillis()
-            }
+            if (holdStartTime == null) holdStartTime = System.currentTimeMillis()
             totalHoldSeconds = ((System.currentTimeMillis() - holdStartTime!!) / 1000).toInt()
         } else {
             holdStartTime = null
         }
 
+        // Hip sag/pike — CRITICAL: spinal compression/strain risk
         when {
-            hipDeviation > 40 -> feedback.add("Lift your hips, your body is sagging down")
-            hipDeviation < -40 -> feedback.add("Lower your hips, your body is too high")
+            hipDeviation > 40 -> cues.add(FormCue(
+                "Lift your hips, your body is sagging down",
+                FormCue.Severity.CRITICAL
+            ))
+            hipDeviation < -40 -> cues.add(FormCue(
+                "Lower your hips, your body is too high",
+                FormCue.Severity.CRITICAL
+            ))
         }
 
+        // Elbow position — WARNING: shoulder impingement risk over a long hold
         if (leftElbow != null && rightElbow != null &&
             leftElbow.inFrameLikelihood > MIN_CONFIDENCE &&
             rightElbow.inFrameLikelihood > MIN_CONFIDENCE
@@ -76,14 +83,17 @@ object PlankAnalyzer {
             val rightShoulderElbowDiff = abs(rightShoulder.position.x - rightElbow.position.x)
 
             if (leftShoulderElbowDiff > 50 || rightShoulderElbowDiff > 50) {
-                feedback.add("Place your elbows directly under your shoulders")
+                cues.add(FormCue(
+                    "Place your elbows directly under your shoulders",
+                    FormCue.Severity.WARNING
+                ))
             }
         }
 
-        if (feedback.isEmpty()) {
-            feedback.add("Good form, hold steady")
+        if (cues.isEmpty()) {
+            cues.add(FormCue("Good form, hold steady", FormCue.Severity.SUCCESS))
         }
 
-        return ExerciseAnalysisResult(feedback, 0, hipDeviation.toDouble(), totalHoldSeconds)
+        return ExerciseAnalysisResult(cues, 0, hipDeviation.toDouble(), totalHoldSeconds)
     }
 }

@@ -14,7 +14,7 @@ object PushupAnalyzer {
     }
 
     fun analyze(pose: Pose): ExerciseAnalysisResult {
-        val feedback = mutableListOf<String>()
+        val cues = mutableListOf<FormCue>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
         val leftElbow = pose.getPoseLandmark(PoseLandmark.LEFT_ELBOW)
@@ -34,29 +34,40 @@ object PushupAnalyzer {
         )
 
         if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
-            feedback.add("Move into frame so your upper body is fully visible")
-            return ExerciseAnalysisResult(feedback, repCounter.getRepCount(), null)
+            cues.add(FormCue(
+                "Move into frame so your upper body is fully visible",
+                FormCue.Severity.INFO
+            ))
+            return ExerciseAnalysisResult(cues, repCounter.getRepCount(), null)
         }
 
-        // Elbow angle check
         val leftElbowAngle = PoseUtils.calculateAngle(leftShoulder!!, leftElbow!!, leftWrist!!)
         val rightElbowAngle = PoseUtils.calculateAngle(rightShoulder!!, rightElbow!!, rightWrist!!)
         val avgElbowAngle = (leftElbowAngle + rightElbowAngle) / 2
 
-        // Update rep counter based on elbow angle
         val reps = repCounter.updateReps(avgElbowAngle)
 
+        // Range of motion — WARNING: rep won't count if range is insufficient
         when {
-            avgElbowAngle > 160 -> feedback.add("Lower your chest, bend your elbows more")
-            avgElbowAngle < 45 -> feedback.add("Push up, do not collapse your arms")
+            avgElbowAngle > 160 -> cues.add(FormCue(
+                "Lower your chest, bend your elbows more",
+                FormCue.Severity.WARNING
+            ))
+            avgElbowAngle < 45 -> cues.add(FormCue(
+                "Push up, do not collapse your arms",
+                FormCue.Severity.WARNING
+            ))
         }
 
-        // Elbow symmetry
+        // Asymmetry — WARNING: muscle imbalance indicator, also injury risk over time
         if (abs(leftElbowAngle - rightElbowAngle) > 15) {
-            feedback.add("Keep both arms even, one side is lower than the other")
+            cues.add(FormCue(
+                "Keep both arms even, one side is lower than the other",
+                FormCue.Severity.WARNING
+            ))
         }
 
-        // Body alignment check — hips should not sag or pike
+        // Body sag/pike — CRITICAL: spinal load risk
         val shoulderMidY = (leftShoulder.position.y + rightShoulder.position.y) / 2
         val hipMidY = (leftHip!!.position.y + rightHip!!.position.y) / 2
 
@@ -65,19 +76,24 @@ object PushupAnalyzer {
             rightAnkle.inFrameLikelihood > MIN_CONFIDENCE
         ) {
             val ankleMidY = (leftAnkle.position.y + rightAnkle.position.y) / 2
-
             val bodyLineDeviation = hipMidY - ((shoulderMidY + ankleMidY) / 2)
 
             when {
-                bodyLineDeviation > 40 -> feedback.add("Lift your hips, your body is sagging")
-                bodyLineDeviation < -40 -> feedback.add("Lower your hips, your body is piking up")
+                bodyLineDeviation > 40 -> cues.add(FormCue(
+                    "Lift your hips, your body is sagging",
+                    FormCue.Severity.CRITICAL
+                ))
+                bodyLineDeviation < -40 -> cues.add(FormCue(
+                    "Lower your hips, your body is piking up",
+                    FormCue.Severity.CRITICAL
+                ))
             }
         }
 
-        if (feedback.isEmpty()) {
-            feedback.add("Good form, keep going")
+        if (cues.isEmpty()) {
+            cues.add(FormCue("Good form, keep going", FormCue.Severity.SUCCESS))
         }
 
-        return ExerciseAnalysisResult(feedback, reps, avgElbowAngle)
+        return ExerciseAnalysisResult(cues, reps, avgElbowAngle)
     }
 }

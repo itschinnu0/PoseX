@@ -10,23 +10,30 @@
 2. **Pose Object** → Exercise-specific analyzer (e.g., `SquatsAnalyzer`) → Feedback list
 3. **Feedback** → `FeedbackEngine` (text-to-speech) + UI (visual overlay)
 
+### Key Modules
+- **UI & Navigation**: `MainActivity` hosts `PoseXApp()` which switches between `HomeScreen` and `WorkoutScreen` based on selected exercise.
+- **Camera Pipeline**: `CameraPreview` configures CameraX front camera + `ImageAnalysis` analyzer and streams frames to `PoseAnalyzer`.
+- **Pose Rendering**: `PoseOverlay` draws skeleton + landmarks with front-camera mirroring and rotated frame scaling.
+- **Exercise Logic**: `SquatsAnalyzer`, `PushupAnalyzer`, `PlankAnalyzer` compute metrics + feedback and update `RepCounter` or hold timer.
+- **Feedback Output**: `FeedbackEngine` uses Text-to-Speech with cooldown to avoid audio spam.
+
 ### Key Architectural Decisions
 
 **Exercise Analyzers as Objects** (`package exercise/`):
 - `SquatsAnalyzer`, `PushupAnalyzer`, `PlankAnalyzer` are **singleton objects**, not classes
 - Each implements identical `analyze(pose: Pose): List<String>` contract
 - **Why objects**: Single responsibility, stateless, reusable without instantiation
-- Returns multiple feedback strings; **only the first one is shown** to the user (see `WorkoutScreen` line 84)
+- Returns multiple feedback strings; **only the first one is shown** to the user (in `WorkoutScreen`)
 
 **Pose Landmark Confidence Filtering**:
 - All analyzers enforce `MIN_CONFIDENCE = 0.5f` to validate pose landmarks
 - This prevents feedback on poor/ambiguous detections
-- Missing or low-confidence landmarks trigger generic "Move into frame" message
+- Missing or low-confidence landmarks trigger exercise-specific "Move into frame" messages
 
-**Front Camera Coordinate Transformation** (`PoseOverlay.kt` lines 24-34):
+**Front Camera Coordinate Transformation** (`PoseOverlay.kt`):
 - CameraX in portrait delivers rotated frames (width ↔ height swap)
 - X-axis is mirrored for front-facing camera
-- **Critical for overlay accuracy**: landmarks must be scaled and flipped correctly
+- **Critical for overlay accuracy**: landmarks must be scaled and flipped correctly using the incoming image dimensions
 
 ## Adding New Exercises
 
@@ -39,8 +46,9 @@
        fun analyze(pose: Pose): List<String> { /* return feedback list */ }
    }
    ```
-3. Add case in `WorkoutScreen.processPose()` (line 77-81)
-4. Add exercise card to `HomeScreen.kt` (line 24-28)
+3. Add case in `WorkoutScreen.processPose()`
+4. Add exercise card to `HomeScreen.kt`
+5. Ensure rep/hold reset is included in `WorkoutScreen.stopExercise()`
 
 **Common Pose Landmarks** (from `com.google.mlkit.vision.pose.PoseLandmark`):
 - Shoulders/Hips/Elbows/Wrists/Knees/Ankles (left/right pairs)
@@ -49,19 +57,19 @@
 
 ## Angle Calculation Pattern
 
-**Repeated in all exercise analyzers** (duplicated helper methods):
+**Shared helper** in `PoseUtils`:
 ```kotlin
-private fun calculateAngle(first: PoseLandmark, mid: PoseLandmark, last: PoseLandmark): Double
+fun calculateAngle(first: PoseLandmark, mid: PoseLandmark, last: PoseLandmark): Double
 ```
-Uses vector dot product to compute angle at `mid` point. **Future refactoring**: move to shared utility class.
+Uses vector dot product to compute angle at `mid` point and is reused by all analyzers.
 
 ## Build & Test Workflow
 
 **Gradle Configuration** (`app/build.gradle.kts`):
-- Target SDK: 36, Min SDK: 24
+- Target SDK: 36, Min SDK: 24 (compileSdk uses release 36.1)
 - Java 11 compatibility
 - Compose enabled with Material3
-- Key dependencies: CameraX 1.4.2, ML Kit Pose Detection 18.0.0-beta5
+- Key dependencies: CameraX, ML Kit Pose Detection (standard + accurate)
 
 **Build Command**:
 ```bash
@@ -89,9 +97,13 @@ Uses vector dot product to compute angle at `mid` point. **Future refactoring**:
 - Used consistently in HomeScreen, WorkoutScreen, PoseOverlay
 
 **Feedback System**:
-- Displayed in banner at screen bottom (WorkoutScreen line 143-162)
+- Displayed in banner at screen bottom (WorkoutScreen)
 - Color changes based on feedback type (good form = green, error = red)
 - Text-to-speech triggered on non-success feedback with 4-second cooldown (FeedbackEngine line 12)
+
+**Exercise Analysis Result**:
+- `ExerciseAnalysisResult` bundles `feedback`, `repCount`, `metricValue`, and `holdDurationSeconds`
+- Plank uses `holdDurationSeconds` while squat/pushup use `repCount`
 
 ## Performance Considerations
 
@@ -123,6 +135,7 @@ Uses vector dot product to compute angle at `mid` point. **Future refactoring**:
 
 - Test instrumentation runner: `androidx.test.runner.AndroidJUnitRunner`
 - UI tests use Compose testing framework (espresso + compose-ui-test)
+- `RepCounterTest` exists, but its constructor call is out of sync with `RepCounter` parameters and needs updating to pass
 - Currently minimal test coverage; exercise analyzers would benefit from unit tests
 
 ## Common Pitfalls & Gotchas
@@ -132,4 +145,12 @@ Uses vector dot product to compute angle at `mid` point. **Future refactoring**:
 3. **First feedback only shown**: if multiple issues exist, only primary message reaches user
 4. **Front camera mirroring**: X-axis flip required for correct visual overlay
 5. **ML Kit beta version**: breaking changes possible in future updates; monitor release notes
+
+## Git History (Recent)
+
+- e027194: Integrate graphify knowledge graph and configure Gemini workspace
+- ff563dd: Refine plank analysis logic and improve type safety
+- f58bba1: Refactor exercise analysis logic and implement plank hold tracking
+- 97c7560: Unify rep counting and improve workout UI
+- 05bd428: Implement squat rep counting and enhance feedback
 

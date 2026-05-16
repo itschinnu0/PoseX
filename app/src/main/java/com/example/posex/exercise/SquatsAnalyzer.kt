@@ -3,7 +3,6 @@ package com.example.posex.exercise
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseLandmark
 import kotlin.math.abs
-import kotlin.math.sqrt
 
 object SquatsAnalyzer {
 
@@ -15,7 +14,7 @@ object SquatsAnalyzer {
     }
 
     fun analyze(pose: Pose): ExerciseAnalysisResult {
-        val feedback = mutableListOf<String>()
+        val cues = mutableListOf<FormCue>()
         var kneeAngle: Double? = null
 
         val leftHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
@@ -28,7 +27,6 @@ object SquatsAnalyzer {
         val rightAnkle = pose.getPoseLandmark(PoseLandmark.RIGHT_ANKLE)
         val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
 
-        // Detect which side is more visible
         val leftConfidence = listOf(leftHip, leftKnee, leftAnkle, leftShoulder)
             .mapNotNull { it?.inFrameLikelihood }
             .average()
@@ -44,54 +42,63 @@ object SquatsAnalyzer {
         val ankle = if (usLeft) leftAnkle else rightAnkle
         val shoulder = if (usLeft) leftShoulder else rightShoulder
 
-        // Confidence check on selected side
         if (hip == null || knee == null || ankle == null ||
             hip.inFrameLikelihood < MIN_CONFIDENCE ||
             knee.inFrameLikelihood < MIN_CONFIDENCE ||
             ankle.inFrameLikelihood < MIN_CONFIDENCE
         ) {
-            feedback.add("Move into frame so your full body is visible from the side")
-            return ExerciseAnalysisResult(feedback, repCounter.getRepCount(), null)
+            cues.add(FormCue(
+                "Move into frame so your full body is visible from the side",
+                FormCue.Severity.INFO
+            ))
+            return ExerciseAnalysisResult(cues, repCounter.getRepCount(), null)
         }
 
-        // Knee angle — primary squat metric
         kneeAngle = PoseUtils.calculateAngle(hip, knee, ankle)
         val reps = repCounter.updateReps(kneeAngle)
 
+        // Depth issues — WARNING: directly affect rep validity
         when {
-            kneeAngle > 160 -> feedback.add("Go lower, bend your knees more")
-            kneeAngle < 60 -> feedback.add("You are too low, come up slightly")
+            kneeAngle > 160 -> cues.add(FormCue(
+                "Go lower, bend your knees more",
+                FormCue.Severity.WARNING
+            ))
+            kneeAngle < 60 -> cues.add(FormCue(
+                "You are too low, come up slightly",
+                FormCue.Severity.WARNING
+            ))
         }
 
-        // Torso upright check — shoulder should be above hip vertically
-        // Torso upright check — from side view
-        // if shoulder is too far forward of hip horizontally, user is leaning
+        // Torso lean — CRITICAL: forward lean under load risks lower back injury
         if (shoulder != null && shoulder.inFrameLikelihood > MIN_CONFIDENCE) {
             val shoulderHipHorizontalDiff = shoulder.position.x - hip.position.x
 
-            // In side view, a large horizontal difference means forward lean
-            // The sign depends on which side is facing camera, so use abs
             if (abs(shoulderHipHorizontalDiff) > 60) {
-                feedback.add("Keep your chest up, do not lean forward")
-            }
-
-            // In side view, a small horizontal difference means back bend
-            // The sign depends on which side is facing camera, so use abs
-            if (abs(shoulderHipHorizontalDiff) < 20 && abs(shoulderHipHorizontalDiff) > 5) {
-                feedback.add("Keep your chest up, do not lean backward")
+                cues.add(FormCue(
+                    "Keep your chest up, do not lean forward",
+                    FormCue.Severity.CRITICAL
+                ))
+            } else if (abs(shoulderHipHorizontalDiff) < 20 && abs(shoulderHipHorizontalDiff) > 5) {
+                cues.add(FormCue(
+                    "Keep your chest up, do not lean backward",
+                    FormCue.Severity.WARNING
+                ))
             }
         }
 
-        // Knee over toe check — knee should not go too far past ankle horizontally
+        // Knee over toe — CRITICAL: knee past toe under load risks knee injury
         val kneeAnkleHorizontalDiff = abs(knee.position.x - ankle.position.x)
         if (kneeAnkleHorizontalDiff > 80) {
-            feedback.add("Do not let your knees go past your toes")
+            cues.add(FormCue(
+                "Do not let your knees go past your toes",
+                FormCue.Severity.CRITICAL
+            ))
         }
 
-        if (feedback.isEmpty()) {
-            feedback.add("Good form, keep going")
+        if (cues.isEmpty()) {
+            cues.add(FormCue("Good form, keep going", FormCue.Severity.SUCCESS))
         }
 
-        return ExerciseAnalysisResult(feedback, reps, kneeAngle)
+        return ExerciseAnalysisResult(cues, reps, kneeAngle)
     }
 }

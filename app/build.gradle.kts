@@ -61,4 +61,5 @@ dependencies {
     implementation(libs.androidx.camera.view)
     implementation(libs.mlkit.pose.detection)
     implementation(libs.mlkit.pose.detection.accurate)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 }
