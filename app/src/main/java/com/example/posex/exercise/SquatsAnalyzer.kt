@@ -8,15 +8,70 @@ object SquatsAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
 
-    // Fallback thresholds used if calibration range is too small.
-    // Also used as the calibration detection anchors.
     private val repCounter = CalibratingRepCounter(
         fallbackBottom = 100.0,
         fallbackTop = 140.0
     )
 
+    // ── Baseline stabilisation constants ─────────────────────────────────
+
+    // User must be this extended before we consider them "at top".
+    // 160° is more conservative than 150° — prevents baseline capture
+    // while the user is still mid-rise.
+    private const val AT_TOP_ANGLE_THRESHOLD = 160.0
+
+    // Baseline only updates after this many consecutive frames above
+    // AT_TOP_ANGLE_THRESHOLD. Prevents a single noisy frame from corrupting
+    // the baseline on the way up.
+    private const val BASELINE_STABILITY_FRAMES = 3
+
+    // Minimum absGap that is physically plausible when standing.
+    // If absGap drops below this while kneeAngle > AT_TOP_ANGLE_THRESHOLD,
+    // the frame is a bad ML Kit reading — discard it entirely.
+    private const val MIN_PLAUSIBLE_STANDING_GAP = 35f
+
+    // Minimum plausible knee angle. Anything below this while supposedly
+    // standing is a garbage landmark — discard the frame.
+    private const val MIN_PLAUSIBLE_KNEE_ANGLE = 20.0
+
+    // ── Leg raise detection constants ─────────────────────────────────────
+    private const val HIP_KNEE_SHRINK_THRESHOLD = 15f
+    private const val HIP_DROP_THRESHOLD = 10f
+
+    // ── State ─────────────────────────────────────────────────────────────
+
+    // Confirmed stable baseline after BASELINE_STABILITY_FRAMES clean frames
+    private var standingAbsGap: Float? = null
+    private var hipYAtStanding: Float? = null
+    private var hasValidBaseline: Boolean = false
+
+    // Frames accumulated toward next baseline update
+    private var consecutiveTopFrames: Int = 0
+    private var accumulatedGap: Float = 0f
+    private var accumulatedHipY: Float = 0f
+
+    // Per-rep descent tracking — reset only inside validator
+    private var minAbsGapThisRep: Float = Float.MAX_VALUE
+    private var maxHipDisplacementThisRep: Float = 0f
+
+    // Whether user was at top on previous frame
+    private var wasAtTop: Boolean = false
+
+    init {
+        repCounter.movementValidator = ::validateNotLegRaise
+    }
+
     fun resetRepCounter() {
         repCounter.reset()
+        standingAbsGap = null
+        hipYAtStanding = null
+        hasValidBaseline = false
+        consecutiveTopFrames = 0
+        accumulatedGap = 0f
+        accumulatedHipY = 0f
+        minAbsGapThisRep = Float.MAX_VALUE
+        maxHipDisplacementThisRep = 0f
+        wasAtTop = false
     }
 
     fun analyze(pose: Pose): ExerciseAnalysisResult {
@@ -63,11 +118,83 @@ object SquatsAnalyzer {
         }
 
         kneeAngle = PoseUtils.calculateAngle(hip, knee, ankle)
+        val currentAbsGap = abs(hip.position.y - knee.position.y)
+        val currentHipY = hip.position.y
 
-        // ── Form checks — done BEFORE updateReps so formValid reflects ────
-        // the current frame accurately when passed to the counter
+        // ── Sanity check — reject physically impossible ML Kit frames ─────
+        // kneeAngle < MIN_PLAUSIBLE_KNEE_ANGLE while apparently standing =
+        // garbage landmark. Skip all gap/baseline logic for this frame.
+        val isAtTop = kneeAngle > AT_TOP_ANGLE_THRESHOLD &&
+                !repCounter.isCalibrating()
 
-        // Torso lean — CRITICAL
+        val isPlausibleFrame = !(isAtTop &&
+                (currentAbsGap < MIN_PLAUSIBLE_STANDING_GAP ||
+                        kneeAngle < MIN_PLAUSIBLE_KNEE_ANGLE))
+
+        if (isPlausibleFrame) {
+            when {
+                // ── At top: accumulate frames toward stable baseline ───────
+                isAtTop -> {
+                    consecutiveTopFrames++
+                    accumulatedGap += currentAbsGap
+                    accumulatedHipY += currentHipY
+
+                    if (consecutiveTopFrames >= BASELINE_STABILITY_FRAMES) {
+                        // Use average over the stability window — smooths noise
+                        val avgGap = accumulatedGap / consecutiveTopFrames
+                        val avgHipY = accumulatedHipY / consecutiveTopFrames
+
+                        // Only update baseline on the !top → top transition
+                        // (first time we accumulate enough frames after a descent)
+                        if (!wasAtTop || standingAbsGap == null) {
+                            standingAbsGap = avgGap
+                            hipYAtStanding = avgHipY
+                            hasValidBaseline = true
+                        }
+
+                        // Reset accumulators so they don't keep growing
+                        consecutiveTopFrames = 0
+                        accumulatedGap = 0f
+                        accumulatedHipY = 0f
+                    }
+                }
+
+                // ── During descent: track minimum gap and hip displacement ─
+                !isAtTop && hasValidBaseline -> {
+                    consecutiveTopFrames = 0
+                    accumulatedGap = 0f
+                    accumulatedHipY = 0f
+
+                    if (currentAbsGap < minAbsGapThisRep) {
+                        minAbsGapThisRep = currentAbsGap
+                    }
+                    val hipDisplacement = abs(currentHipY - (hipYAtStanding ?: currentHipY))
+                    if (hipDisplacement > maxHipDisplacementThisRep) {
+                        maxHipDisplacementThisRep = hipDisplacement
+                    }
+                }
+            }
+            wasAtTop = isAtTop
+        }
+
+        // Debug log — remove after confirming consistent rep counting
+        val baseline = standingAbsGap ?: -1f
+        val shrinkage = if (baseline > 0 && minAbsGapThisRep != Float.MAX_VALUE)
+            baseline - minAbsGapThisRep else 0f
+        android.util.Log.d("SquatDebug",
+            "kneeAngle=${"%.1f".format(kneeAngle)} " +
+                    "absGap=${"%.1f".format(currentAbsGap)} " +
+                    "baseline=${"%.1f".format(baseline)} " +
+                    "shrinkage=${"%.1f".format(shrinkage)} " +
+                    "hipDisp=${"%.1f".format(maxHipDisplacementThisRep)} " +
+                    "topFrames=$consecutiveTopFrames " +
+                    "plausible=$isPlausibleFrame " +
+                    "phase=${repCounter.phase} " +
+                    "reps=${repCounter.getRepCount()}"
+        )
+
+        // ── Form checks ───────────────────────────────────────────────────
+
         if (shoulder != null && shoulder.inFrameLikelihood > MIN_CONFIDENCE) {
             val diff = shoulder.position.x - hip.position.x
             if (abs(diff) > 60) {
@@ -83,16 +210,13 @@ object SquatsAnalyzer {
             }
         }
 
-        // Knee over toe — CRITICAL
-        val kneeAnkleDiff = abs(knee.position.x - ankle.position.x)
-        if (kneeAnkleDiff > 80) {
+        if (abs(knee.position.x - ankle.position.x) > 80) {
             cues.add(FormCue(
                 "Do not let your knees go past your toes",
                 FormCue.Severity.CRITICAL
             ))
         }
 
-        // Depth — WARNING (not a safety issue, a quality issue)
         when {
             kneeAngle > 160 -> cues.add(FormCue(
                 "Go lower, bend your knees more",
@@ -104,10 +228,8 @@ object SquatsAnalyzer {
             ))
         }
 
-        // formValid = no CRITICAL cues this frame
         val formValid = cues.none { it.severity == FormCue.Severity.CRITICAL }
 
-        // Show calibration hint during first rep
         if (repCounter.isCalibrating()) {
             cues.add(FormCue(
                 "Perform one full squat to calibrate",
@@ -116,6 +238,10 @@ object SquatsAnalyzer {
         }
 
         val reps = repCounter.updateReps(kneeAngle, formValid)
+
+        if (repCounter.lastRepRejected) {
+            cues.add(FormCue(repCounter.rejectionReason, FormCue.Severity.CRITICAL))
+        }
 
         if (cues.none { it.severity != FormCue.Severity.INFO } && !repCounter.lastRepRejected) {
             cues.add(FormCue("Good form, keep going", FormCue.Severity.SUCCESS))
@@ -129,5 +255,49 @@ object SquatsAnalyzer {
             repRejected = repCounter.lastRepRejected,
             rejectionReason = repCounter.rejectionReason
         )
+    }
+
+    // ── Movement validator ────────────────────────────────────────────────
+
+    private fun validateNotLegRaise(): CalibratingRepCounter.ValidationResult {
+        if (!hasValidBaseline) {
+            return CalibratingRepCounter.ValidationResult(true)
+        }
+
+        val baseline = standingAbsGap
+            ?: return CalibratingRepCounter.ValidationResult(true)
+
+        val gapShrinkage = if (minAbsGapThisRep != Float.MAX_VALUE)
+            baseline - minAbsGapThisRep else 0f
+        val hipDisp = maxHipDisplacementThisRep
+
+        android.util.Log.d("SquatValidate",
+            "gapShrinkage=${"%.1f".format(gapShrinkage)} " +
+                    "hipDisp=${"%.1f".format(hipDisp)} " +
+                    "baseline=${"%.1f".format(baseline)}"
+        )
+
+        // Reset AFTER reading
+        minAbsGapThisRep = Float.MAX_VALUE
+        maxHipDisplacementThisRep = 0f
+
+        return when {
+            gapShrinkage >= HIP_KNEE_SHRINK_THRESHOLD &&
+                    hipDisp >= HIP_DROP_THRESHOLD ->
+                CalibratingRepCounter.ValidationResult(true)
+
+            gapShrinkage >= HIP_KNEE_SHRINK_THRESHOLD &&
+                    hipDisp < HIP_DROP_THRESHOLD ->
+                CalibratingRepCounter.ValidationResult(
+                    passed = false,
+                    reason = "Rep not counted — lower your hips into the squat"
+                )
+
+            else ->
+                CalibratingRepCounter.ValidationResult(
+                    passed = false,
+                    reason = "Rep not counted — bend your knees and lower your hips"
+                )
+        }
     }
 }

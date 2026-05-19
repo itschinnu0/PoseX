@@ -1,36 +1,34 @@
 package com.example.posex.exercise
 
 /**
- * Rep counter that calibrates its thresholds from the user's first rep
- * instead of using hardcoded values.
+ * Rep counter with five defences against miscounting:
  *
- * ## Calibration phase
- * On the first rep cycle, the counter watches the angle stream and records:
- *   - [observedMin] — deepest angle reached (bottom of movement)
- *   - [observedMax] — most extended angle reached (top of movement)
+ * 1. CALIBRATION FROM FIRST REP
+ *    Watches the user's actual range of motion on rep 1.
+ *    Sets bottomThreshold = observedMin + THRESHOLD_BUFFER
+ *    Sets topThreshold    = observedMax - THRESHOLD_BUFFER
+ *    Falls back to constructor values if observed range is too small.
+ *    First rep is observation only — not counted.
  *
- * Calibration completes when the user returns to the top position after
- * reaching the bottom. Thresholds are then set as:
- *   bottomThreshold = observedMin + THRESHOLD_BUFFER
- *   topThreshold    = observedMax - THRESHOLD_BUFFER
+ * 2. STABILITY WINDOWS (fixes noisy ML Kit landmarks)
+ *    Angle must cross threshold for STABILITY_FRAMES = 2 consecutive
+ *    frames before position flips. Single rogue frames are ignored.
  *
- * The buffer (15°) prevents the threshold from sitting exactly at the
- * user's personal limit — they'd need to match it precisely every rep.
- * 15° gives realistic tolerance without being so loose that partial reps count.
+ * 3. TOLERANCE BAND (fixes inconsistent counting near threshold)
+ *    Once the stability counter starts accumulating toward bottom,
+ *    it only resets if the angle moves more than STABILITY_TOLERANCE
+ *    degrees BACK above the threshold — not just 1-2° above it.
+ *    This handles the natural oscillation that occurs when a user
+ *    is near the threshold during a real movement.
+ *    Same logic applies to the top stability counter.
  *
- * The first rep is NOT counted — it is observation only.
+ * 4. FORM GATE
+ *    If formValid = false on any frame during descent, rep is rejected.
  *
- * ## Form gate
- * [updateReps] accepts a [formValid] parameter. If false when the rep
- * would complete (angle crosses topThreshold from bottom), the rep is
- * rejected and [lastRepRejected] is set to true. The caller (WorkoutScreen)
- * reads this flag to show the user why their rep didn't count.
- *
- * ## Fallback thresholds
- * If calibration produces a range smaller than MIN_CALIBRATION_RANGE degrees
- * (user barely moved), the counter falls back to the provided
- * [fallbackBottom] and [fallbackTop]. This handles cases where the user
- * twitched during calibration rather than doing a real rep.
+ * 5. MOVEMENT VALIDATION via [squatValidator]
+ *    Optional external validator called on rep completion.
+ *    Used to reject leg raises, partial movements, etc.
+ *    Returns a [ValidationResult] — pass or reject with reason.
  */
 class CalibratingRepCounter(
     private val fallbackBottom: Double,
@@ -38,52 +36,64 @@ class CalibratingRepCounter(
 ) {
     companion object {
         private const val THRESHOLD_BUFFER = 15.0
-        // Minimum angle range for calibration to be considered valid.
-        // A squat should have at least 40° of range; pushup at least 50°.
-        // If range is smaller, fall back to hardcoded thresholds.
         private const val MIN_CALIBRATION_RANGE = 35.0
+        const val STABILITY_FRAMES = 2
+
+        // Tolerance band: stability counter only resets if angle moves
+        // this many degrees back past the threshold in the wrong direction.
+        // Handles natural oscillation near threshold during real movement.
+        private const val STABILITY_TOLERANCE = 5.0
     }
 
-    // ── State ─────────────────────────────────────────────────────────────
+    // ── Phase ─────────────────────────────────────────────────────────────
 
     enum class Phase { CALIBRATING, CALIBRATED }
 
     var phase: Phase = Phase.CALIBRATING
         private set
 
-    private var repCount = 0
+    // ── Thresholds ────────────────────────────────────────────────────────
 
-    // Calibration tracking
+    private var bottomThreshold = fallbackBottom
+    private var topThreshold = fallbackTop
+
+    // ── Rep counting state ────────────────────────────────────────────────
+
+    private var repCount = 0
+    private var isInBottomPosition = false
+
+    private var consecutiveBottomFrames = 0
+    private var consecutiveTopFrames = 0
+
+    // Form gate
+    private var hadCriticalThisRep = false
+
+    // ── Calibration state ─────────────────────────────────────────────────
+
     private var observedMin = Double.MAX_VALUE
     private var observedMax = Double.MIN_VALUE
     private var calibrationReachedBottom = false
 
-    // Working thresholds — set after calibration or from fallback
-    private var bottomThreshold = fallbackBottom
-    private var topThreshold = fallbackTop
+    // ── Result flags ──────────────────────────────────────────────────────
 
-    // Rep cycle tracking
-    private var isInBottomPosition = false
-
-    /** True if the most recent completed rep cycle was rejected due to form. */
     var lastRepRejected: Boolean = false
         private set
-
-    /** Human-readable reason for the last rejection. Empty if not rejected. */
     var rejectionReason: String = ""
         private set
 
-    // ── Public API ────────────────────────────────────────────────────────
+    // ── External movement validator ───────────────────────────────────────
+
+    data class ValidationResult(val passed: Boolean, val reason: String = "")
 
     /**
-     * Feed the current angle each frame.
-     *
-     * [formValid] — pass false if a CRITICAL cue is active this frame.
-     *               The rep will be blocked if form was invalid at any
-     *               point during the current descent.
-     *
-     * Returns the current rep count.
+     * Optional validator called on every rep completion attempt.
+     * Set by the analyzer (e.g. SquatsAnalyzer sets a leg-raise detector).
+     * If null, no external validation is performed.
      */
+    var movementValidator: (() -> ValidationResult)? = null
+
+    // ── Public API ────────────────────────────────────────────────────────
+
     fun updateReps(angle: Double, formValid: Boolean = true): Int {
         lastRepRejected = false
         rejectionReason = ""
@@ -95,7 +105,6 @@ class CalibratingRepCounter(
     }
 
     fun getRepCount(): Int = repCount
-
     fun isCalibrating(): Boolean = phase == Phase.CALIBRATING
 
     fun reset() {
@@ -107,66 +116,106 @@ class CalibratingRepCounter(
         bottomThreshold = fallbackBottom
         topThreshold = fallbackTop
         isInBottomPosition = false
+        consecutiveBottomFrames = 0
+        consecutiveTopFrames = 0
+        hadCriticalThisRep = false
         lastRepRejected = false
         rejectionReason = ""
-        hadCriticalThisRep = false
     }
 
-    // ── Private: calibration ──────────────────────────────────────────────
+    // ── Calibration ───────────────────────────────────────────────────────
 
     private fun calibrate(angle: Double): Int {
-        // Track full range during calibration rep
         if (angle < observedMin) observedMin = angle
         if (angle > observedMax) observedMax = angle
 
-        // Wait for user to reach bottom
-        if (!calibrationReachedBottom && angle < fallbackBottom + 20) {
+        if (!calibrationReachedBottom && angle <= fallbackBottom) {
             calibrationReachedBottom = true
         }
 
-        // Calibration complete when user returns to top after reaching bottom
-        if (calibrationReachedBottom && angle > fallbackTop - 20) {
+        if (calibrationReachedBottom && angle >= fallbackTop) {
             val range = observedMax - observedMin
             if (range >= MIN_CALIBRATION_RANGE) {
                 bottomThreshold = observedMin + THRESHOLD_BUFFER
                 topThreshold = observedMax - THRESHOLD_BUFFER
             }
-            // If range too small, fallback thresholds remain unchanged
             phase = Phase.CALIBRATED
         }
 
         return repCount
     }
 
-    // ── Private: rep counting with form gate ──────────────────────────────
-
-    // Tracks whether a CRITICAL cue fired at any point during current descent
-    private var hadCriticalThisRep = false
+    // ── Rep counting ──────────────────────────────────────────────────────
 
     private fun countRep(angle: Double, formValid: Boolean): Int {
-        // Track critical cues during descent
         if (isInBottomPosition && !formValid) {
             hadCriticalThisRep = true
         }
 
         when {
-            angle < bottomThreshold && !isInBottomPosition -> {
-                isInBottomPosition = true
-                hadCriticalThisRep = if (!formValid) true else hadCriticalThisRep
-            }
-            angle > topThreshold && isInBottomPosition -> {
-                isInBottomPosition = false
-                if (hadCriticalThisRep) {
-                    // Rep blocked — form was critically wrong during this cycle
-                    lastRepRejected = true
-                    rejectionReason = "Rep not counted — fix your form first"
-                } else {
-                    repCount++
+            // ── Approaching bottom ────────────────────────────────────────
+            !isInBottomPosition && angle < bottomThreshold -> {
+                consecutiveBottomFrames++
+                // Only reset top counter if angle is well above topThreshold,
+                // not just marginally — avoids resetting during mid-movement
+                if (angle > topThreshold + STABILITY_TOLERANCE) {
+                    consecutiveTopFrames = 0
                 }
-                hadCriticalThisRep = false
+                if (consecutiveBottomFrames >= STABILITY_FRAMES) {
+                    isInBottomPosition = true
+                    consecutiveBottomFrames = 0
+                    if (!formValid) hadCriticalThisRep = true
+                }
+            }
+
+            // ── Returning to top ──────────────────────────────────────────
+            isInBottomPosition && angle > topThreshold -> {
+                consecutiveTopFrames++
+                // Only reset bottom counter if angle is well below bottomThreshold
+                if (angle < bottomThreshold - STABILITY_TOLERANCE) {
+                    consecutiveBottomFrames = 0
+                }
+                if (consecutiveTopFrames >= STABILITY_FRAMES) {
+                    isInBottomPosition = false
+                    consecutiveTopFrames = 0
+                    evaluateRep()
+                }
+            }
+
+            // ── In middle zone — apply tolerance before resetting ─────────
+            else -> {
+                // Reset bottom counter only if clearly above threshold + tolerance
+                if (angle > bottomThreshold + STABILITY_TOLERANCE) {
+                    consecutiveBottomFrames = 0
+                }
+                // Reset top counter only if clearly below threshold - tolerance
+                if (angle < topThreshold - STABILITY_TOLERANCE) {
+                    consecutiveTopFrames = 0
+                }
             }
         }
 
         return repCount
+    }
+
+    private fun evaluateRep() {
+        when {
+            hadCriticalThisRep -> {
+                lastRepRejected = true
+                rejectionReason = "Rep not counted — fix your form first"
+            }
+            else -> {
+                // Run external movement validator if set
+                val validation = movementValidator?.invoke()
+                if (validation != null && !validation.passed) {
+                    lastRepRejected = true
+                    rejectionReason = validation.reason
+                } else {
+                    repCount++
+                }
+            }
+        }
+        // Always reset per-rep tracking
+        hadCriticalThisRep = false
     }
 }

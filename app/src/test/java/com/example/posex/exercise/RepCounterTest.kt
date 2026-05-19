@@ -8,9 +8,20 @@ class RepCounterTest {
 
     private lateinit var repCounter: CalibratingRepCounter
 
-    // Squat fallback thresholds — matches SquatsAnalyzer
     private val fallbackBottom = 100.0
     private val fallbackTop = 140.0
+
+    private fun feedFrames(angle: Double, count: Int, formValid: Boolean = true) {
+        repeat(count) { repCounter.updateReps(angle, formValid) }
+    }
+
+    private fun completeCalibration() {
+        feedFrames(165.0, 2)   // stable at top
+        feedFrames(95.0, 2)    // below fallbackBottom (100) → bottom anchor
+        feedFrames(145.0, 2)   // above fallbackTop (140) → calibration completes
+        assertEquals(CalibratingRepCounter.Phase.CALIBRATED, repCounter.phase)
+        assertEquals(0, repCounter.getRepCount())
+    }
 
     @Before
     fun setUp() {
@@ -18,145 +29,182 @@ class RepCounterTest {
             fallbackBottom = fallbackBottom,
             fallbackTop = fallbackTop
         )
-        // Complete calibration before every test.
-        // Calibration requires: reach bottom anchor (< fallbackBottom + 20 = 120)
-        // then return to top anchor (> fallbackTop - 20 = 120).
-        // We use a clean rep with good form (formValid = true) to complete it.
-        repCounter.updateReps(165.0, formValid = true)  // start at top
-        repCounter.updateReps(80.0, formValid = true)   // go below bottom anchor
-        repCounter.updateReps(150.0, formValid = true)  // return above top anchor → calibrates
-        // After calibration, first rep is NOT counted — counter still at 0.
-        // Phase is now CALIBRATED and thresholds are set from observed range.
-        assertEquals("Calibration should complete after first rep cycle",
-            CalibratingRepCounter.Phase.CALIBRATED, repCounter.phase)
-        assertEquals("No reps should be counted during calibration rep",
-            0, repCounter.getRepCount())
+        completeCalibration()
     }
+
+    // ── Basic counting ────────────────────────────────────────────────────
 
     @Test
     fun testNoRepsCountedWhenStayingAtTop() {
-        assertEquals(0, repCounter.updateReps(160.0, formValid = true))
-        assertEquals(0, repCounter.updateReps(165.0, formValid = true))
-        assertEquals(0, repCounter.updateReps(170.0, formValid = true))
+        feedFrames(160.0, 4)
+        assertEquals(0, repCounter.getRepCount())
     }
 
     @Test
     fun testNoRepsCountedWhenStayingAtBottom() {
-        assertEquals(0, repCounter.updateReps(60.0, formValid = true))
-        assertEquals(0, repCounter.updateReps(65.0, formValid = true))
-        assertEquals(0, repCounter.updateReps(70.0, formValid = true))
+        feedFrames(60.0, 4)
+        assertEquals(0, repCounter.getRepCount())
     }
 
     @Test
     fun testOneRepCounted() {
-        repCounter.updateReps(165.0, formValid = true)  // start at top
-        assertEquals(0, repCounter.getRepCount())
-
-        repCounter.updateReps(80.0, formValid = true)   // go down
-        assertEquals(0, repCounter.getRepCount())
-
-        val reps = repCounter.updateReps(150.0, formValid = true)  // come back up
-        assertEquals(1, reps)
+        feedFrames(165.0, 2)
+        feedFrames(80.0, 2)
+        feedFrames(150.0, 2)
         assertEquals(1, repCounter.getRepCount())
+        assertFalse(repCounter.lastRepRejected)
     }
 
     @Test
     fun testMultipleRepsCounted() {
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(80.0, formValid = true)
-        assertEquals(1, repCounter.updateReps(150.0, formValid = true))
+        feedFrames(165.0, 2); feedFrames(80.0, 2); feedFrames(150.0, 2)
+        assertEquals(1, repCounter.getRepCount())
 
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(75.0, formValid = true)
-        assertEquals(2, repCounter.updateReps(155.0, formValid = true))
+        feedFrames(165.0, 2); feedFrames(75.0, 2); feedFrames(155.0, 2)
+        assertEquals(2, repCounter.getRepCount())
 
-        repCounter.updateReps(170.0, formValid = true)
-        repCounter.updateReps(85.0, formValid = true)
-        assertEquals(3, repCounter.updateReps(145.0, formValid = true))
-
+        feedFrames(170.0, 2); feedFrames(85.0, 2); feedFrames(145.0, 2)
         assertEquals(3, repCounter.getRepCount())
     }
 
+    // ── Stability window ──────────────────────────────────────────────────
+
     @Test
-    fun testNoDoubleCountAtThresholdHysteresis() {
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(75.0, formValid = true)
-        assertEquals(1, repCounter.updateReps(145.0, formValid = true))
-
-        // Jitter around top — should not count again
-        repCounter.updateReps(148.0, formValid = true)
-        repCounter.updateReps(150.0, formValid = true)
-        assertEquals(1, repCounter.getRepCount())
-
-        repCounter.updateReps(120.0, formValid = true)
-        repCounter.updateReps(75.0, formValid = true)
-        assertEquals(2, repCounter.updateReps(150.0, formValid = true))
-
-        assertEquals(2, repCounter.getRepCount())
+    fun testSingleFrameBelowThresholdDoesNotTriggerBottom() {
+        repCounter.updateReps(165.0)
+        repCounter.updateReps(80.0)   // 1 frame only — not enough
+        repCounter.updateReps(165.0)  // back up before stability reached
+        repCounter.updateReps(165.0)
+        assertEquals(0, repCounter.getRepCount())
     }
 
     @Test
+    fun testSingleFrameAboveThresholdDoesNotCompleteRep() {
+        feedFrames(165.0, 2)
+        feedFrames(80.0, 2)           // bottom confirmed
+        repCounter.updateReps(150.0)  // 1 frame above top — not enough
+        repCounter.updateReps(80.0)   // back down
+        assertEquals(0, repCounter.getRepCount())
+    }
+
+    // ── Tolerance band — fixes inconsistent counting ───────────────────────
+
+    @Test
+    fun testOscillationNearBottomThresholdStillCountsRep() {
+        // Simulate realistic squat descent: angle oscillates near threshold
+        // before stabilising below it. With tolerance band, the stability
+        // counter should survive brief excursions just above threshold.
+        feedFrames(165.0, 2)          // at top
+        repCounter.updateReps(98.0)   // below threshold (100)
+        repCounter.updateReps(103.0)  // just above threshold — within tolerance (5°)
+        repCounter.updateReps(97.0)   // back below — counter should NOT have reset
+        feedFrames(150.0, 2)          // return to top → rep should count
+        assertEquals("Rep should count despite oscillation near bottom threshold",
+            1, repCounter.getRepCount())
+    }
+
+    @Test
+    fun testLargeExcursionAboveThresholdResetsBottomCounter() {
+        feedFrames(165.0, 2)
+        repCounter.updateReps(98.0)   // below threshold — counter = 1
+        repCounter.updateReps(120.0)  // 20° above threshold — well beyond tolerance
+        // Counter should have reset — need 2 more clean frames below threshold
+        repCounter.updateReps(98.0)   // counter = 1 again
+        repCounter.updateReps(150.0)  // at top — should NOT count (bottom not confirmed)
+        assertEquals("Large excursion above threshold should reset bottom counter",
+            0, repCounter.getRepCount())
+    }
+
+    // ── Hysteresis ────────────────────────────────────────────────────────
+
+    @Test
+    fun testNoDoubleCountAtThresholdHysteresis() {
+        feedFrames(165.0, 2); feedFrames(75.0, 2); feedFrames(145.0, 2)
+        assertEquals(1, repCounter.getRepCount())
+
+        feedFrames(148.0, 2); feedFrames(150.0, 2)
+        assertEquals("Jitter at top should not double count", 1, repCounter.getRepCount())
+
+        feedFrames(75.0, 2); feedFrames(150.0, 2)
+        assertEquals(2, repCounter.getRepCount())
+    }
+
+    // ── Form gate ─────────────────────────────────────────────────────────
+
+    @Test
+    fun testRepRejectedWhenFormInvalidDuringDescent() {
+        feedFrames(165.0, 2, formValid = true)
+        feedFrames(80.0, 2, formValid = false)
+        feedFrames(150.0, 2, formValid = true)
+
+        assertEquals(0, repCounter.getRepCount())
+        assertTrue(repCounter.lastRepRejected)
+        assertTrue(repCounter.rejectionReason.isNotEmpty())
+    }
+
+    @Test
+    fun testRepCountedWhenFormValidThroughout() {
+        feedFrames(165.0, 2, formValid = true)
+        feedFrames(80.0, 2, formValid = true)
+        feedFrames(150.0, 2, formValid = true)
+        assertEquals(1, repCounter.getRepCount())
+        assertFalse(repCounter.lastRepRejected)
+    }
+
+    @Test
+    fun testFormGateResetsAfterRejection() {
+        feedFrames(165.0, 2, formValid = true)
+        feedFrames(80.0, 2, formValid = false)
+        feedFrames(150.0, 2, formValid = true)
+        assertEquals(0, repCounter.getRepCount())
+        assertTrue(repCounter.lastRepRejected)
+
+        feedFrames(165.0, 2, formValid = true)
+        feedFrames(80.0, 2, formValid = true)
+        feedFrames(150.0, 2, formValid = true)
+        assertEquals(1, repCounter.getRepCount())
+        assertFalse(repCounter.lastRepRejected)
+    }
+
+    // ── Reset ─────────────────────────────────────────────────────────────
+
+    @Test
     fun testResetFunctionality() {
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(75.0, formValid = true)
-        assertEquals(1, repCounter.updateReps(150.0, formValid = true))
+        feedFrames(165.0, 2); feedFrames(75.0, 2); feedFrames(150.0, 2)
+        assertEquals(1, repCounter.getRepCount())
 
         repCounter.reset()
         assertEquals(0, repCounter.getRepCount())
         assertEquals(CalibratingRepCounter.Phase.CALIBRATING, repCounter.phase)
 
-        // Must re-calibrate after reset before reps count
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(80.0, formValid = true)
-        repCounter.updateReps(150.0, formValid = true) // calibration rep
-        assertEquals(0, repCounter.getRepCount())      // calibration rep not counted
+        completeCalibration()
 
-        // Now reps count again
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(80.0, formValid = true)
-        assertEquals(1, repCounter.updateReps(150.0, formValid = true))
-    }
-
-    @Test
-    fun testRepRejectedWhenFormInvalidDuringDescent() {
-        // Start rep with good form at top
-        repCounter.updateReps(165.0, formValid = true)
-        // Go down with bad form (CRITICAL cue active)
-        repCounter.updateReps(80.0, formValid = false)
-        // Return to top — rep should be rejected
-        repCounter.updateReps(150.0, formValid = true)
-
-        assertEquals("Rep should not be counted when form was invalid during descent",
-            0, repCounter.getRepCount())
-        assertTrue("lastRepRejected should be true", repCounter.lastRepRejected)
-        assertTrue("rejectionReason should not be empty",
-            repCounter.rejectionReason.isNotEmpty())
-    }
-
-    @Test
-    fun testRepCountedWhenFormValidThroughout() {
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(80.0, formValid = true)
-        repCounter.updateReps(150.0, formValid = true)
-
+        feedFrames(165.0, 2); feedFrames(80.0, 2); feedFrames(150.0, 2)
         assertEquals(1, repCounter.getRepCount())
-        assertFalse("lastRepRejected should be false for clean rep",
-            repCounter.lastRepRejected)
     }
 
+    // ── External movement validator ───────────────────────────────────────
+
     @Test
-    fun testFormGateResetsAfterRejection() {
-        // Rejected rep
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(80.0, formValid = false)
-        repCounter.updateReps(150.0, formValid = true)
+    fun testMovementValidatorBlocksRep() {
+        repCounter.movementValidator = {
+            CalibratingRepCounter.ValidationResult(false, "Test rejection")
+        }
+
+        feedFrames(165.0, 2); feedFrames(80.0, 2); feedFrames(150.0, 2)
+
         assertEquals(0, repCounter.getRepCount())
         assertTrue(repCounter.lastRepRejected)
+        assertEquals("Test rejection", repCounter.rejectionReason)
+    }
 
-        // Clean rep immediately after — should count
-        repCounter.updateReps(165.0, formValid = true)
-        repCounter.updateReps(80.0, formValid = true)
-        repCounter.updateReps(150.0, formValid = true)
+    @Test
+    fun testMovementValidatorAllowsRep() {
+        repCounter.movementValidator = {
+            CalibratingRepCounter.ValidationResult(true)
+        }
+
+        feedFrames(165.0, 2); feedFrames(80.0, 2); feedFrames(150.0, 2)
         assertEquals(1, repCounter.getRepCount())
         assertFalse(repCounter.lastRepRejected)
     }
