@@ -123,19 +123,44 @@ class CalibratingRepCounter(
         rejectionReason = ""
     }
 
+    fun abortCurrentRep() {
+        isInBottomPosition = false
+        consecutiveBottomFrames = 0
+        consecutiveTopFrames = 0
+        hadCriticalThisRep = false
+    }
+
     // ── Calibration ───────────────────────────────────────────────────────
 
     private fun calibrate(angle: Double): Int {
         if (angle < observedMin) observedMin = angle
         if (angle > observedMax) observedMax = angle
 
-        if (!calibrationReachedBottom && angle <= fallbackBottom) {
-            calibrationReachedBottom = true
+        val range = observedMax - observedMin
+
+        if (!calibrationReachedBottom) {
+            calibrationReachedBottom = angle <= fallbackBottom ||
+                    range >= MIN_CALIBRATION_RANGE
         }
 
-        if (calibrationReachedBottom && angle >= fallbackTop) {
-            val range = observedMax - observedMin
+        val returnedToTop = angle >= fallbackTop ||
+                angle >= observedMax - THRESHOLD_BUFFER
+
+        if (calibrationReachedBottom && returnedToTop) {
             if (range >= MIN_CALIBRATION_RANGE) {
+                // FIX: Run external validator before accepting the calibration!
+                val validation = movementValidator?.invoke()
+                if (validation != null && !validation.passed) {
+                    lastRepRejected = true
+                    rejectionReason = "Calibration failed: ${validation.reason}"
+
+                    // Reset calibration state so they must try again
+                    observedMin = Double.MAX_VALUE
+                    observedMax = Double.MIN_VALUE
+                    calibrationReachedBottom = false
+                    return repCount
+                }
+
                 bottomThreshold = observedMin + THRESHOLD_BUFFER
                 topThreshold = observedMax - THRESHOLD_BUFFER
             }
@@ -148,33 +173,28 @@ class CalibratingRepCounter(
     // ── Rep counting ──────────────────────────────────────────────────────
 
     private fun countRep(angle: Double, formValid: Boolean): Int {
-        if (isInBottomPosition && !formValid) {
+        // FIX 1: Catch bad form ANYTIME during the movement.
+        // If they are below the topThreshold, they are actively in a rep.
+        val isActivelyMoving = angle < topThreshold
+        if (isActivelyMoving && !formValid) {
             hadCriticalThisRep = true
         }
 
         when {
             // ── Approaching bottom ────────────────────────────────────────
-            !isInBottomPosition && angle < bottomThreshold -> {
+            !isInBottomPosition && angle <= bottomThreshold -> {
                 consecutiveBottomFrames++
-                // Only reset top counter if angle is well above topThreshold,
-                // not just marginally — avoids resetting during mid-movement
-                if (angle > topThreshold + STABILITY_TOLERANCE) {
-                    consecutiveTopFrames = 0
-                }
+
                 if (consecutiveBottomFrames >= STABILITY_FRAMES) {
                     isInBottomPosition = true
                     consecutiveBottomFrames = 0
-                    if (!formValid) hadCriticalThisRep = true
                 }
             }
 
             // ── Returning to top ──────────────────────────────────────────
-            isInBottomPosition && angle > topThreshold -> {
+            isInBottomPosition && angle >= topThreshold -> {
                 consecutiveTopFrames++
-                // Only reset bottom counter if angle is well below bottomThreshold
-                if (angle < bottomThreshold - STABILITY_TOLERANCE) {
-                    consecutiveBottomFrames = 0
-                }
+
                 if (consecutiveTopFrames >= STABILITY_FRAMES) {
                     isInBottomPosition = false
                     consecutiveTopFrames = 0
@@ -184,15 +204,23 @@ class CalibratingRepCounter(
 
             // ── In middle zone — apply tolerance before resetting ─────────
             else -> {
-                // Reset bottom counter only if clearly above threshold + tolerance
-                if (angle > bottomThreshold + STABILITY_TOLERANCE) {
+                // If they bounce back UP slightly during descent, reset bottom stability
+                if (!isInBottomPosition && angle > bottomThreshold + STABILITY_TOLERANCE) {
                     consecutiveBottomFrames = 0
                 }
-                // Reset top counter only if clearly below threshold - tolerance
-                if (angle < topThreshold - STABILITY_TOLERANCE) {
+                // If they bounce back DOWN slightly during ascent, reset top stability
+                if (isInBottomPosition && angle < topThreshold - STABILITY_TOLERANCE) {
                     consecutiveTopFrames = 0
                 }
             }
+        }
+
+        // FIX 2: State Leak Prevention (Aborted Reps).
+        // If they return to a fully upright standing position WITHOUT triggering
+        // evaluateRep() (meaning they aborted a shallow rep), clear the bad form
+        // flag so it doesn't unjustly ruin their next attempt.
+        if (!isInBottomPosition && angle >= topThreshold + STABILITY_TOLERANCE) {
+            hadCriticalThisRep = false
         }
 
         return repCount

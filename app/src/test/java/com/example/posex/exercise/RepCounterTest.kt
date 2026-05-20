@@ -63,7 +63,7 @@ class RepCounterTest {
         feedFrames(165.0, 2); feedFrames(75.0, 2); feedFrames(155.0, 2)
         assertEquals(2, repCounter.getRepCount())
 
-        feedFrames(170.0, 2); feedFrames(85.0, 2); feedFrames(145.0, 2)
+        feedFrames(170.0, 2); feedFrames(85.0, 2); feedFrames(150.0, 2)
         assertEquals(3, repCounter.getRepCount())
     }
 
@@ -119,7 +119,7 @@ class RepCounterTest {
 
     @Test
     fun testNoDoubleCountAtThresholdHysteresis() {
-        feedFrames(165.0, 2); feedFrames(75.0, 2); feedFrames(145.0, 2)
+        feedFrames(165.0, 2); feedFrames(75.0, 2); feedFrames(150.0, 2)
         assertEquals(1, repCounter.getRepCount())
 
         feedFrames(148.0, 2); feedFrames(150.0, 2)
@@ -207,5 +207,60 @@ class RepCounterTest {
         feedFrames(165.0, 2); feedFrames(80.0, 2); feedFrames(150.0, 2)
         assertEquals(1, repCounter.getRepCount())
         assertFalse(repCounter.lastRepRejected)
+    }
+
+    @Test
+    fun testAbortCurrentRepResetsState() {
+        feedFrames(165.0, 2)
+        feedFrames(80.0, 2) // enter bottom position
+        repCounter.abortCurrentRep()
+
+        // Returning to top should not count because rep was aborted
+        feedFrames(150.0, 2)
+        assertEquals(0, repCounter.getRepCount())
+
+        // A fresh full rep should count normally
+        feedFrames(165.0, 2)
+        feedFrames(80.0, 2)
+        feedFrames(150.0, 2)
+        assertEquals(1, repCounter.getRepCount())
+    }
+
+    @Test
+    fun testCalibrationRejectedByMovementValidator() {
+        val counter = CalibratingRepCounter(
+            fallbackBottom = fallbackBottom,
+            fallbackTop = fallbackTop
+        )
+        counter.movementValidator = {
+            CalibratingRepCounter.ValidationResult(false, "Leg raise")
+        }
+
+        // Attempt calibration
+        repeat(2) { counter.updateReps(165.0) }
+        repeat(2) { counter.updateReps(95.0) }
+        counter.updateReps(145.0)
+
+        assertEquals(CalibratingRepCounter.Phase.CALIBRATING, counter.phase)
+        assertTrue(counter.lastRepRejected)
+        assertTrue(counter.rejectionReason.contains("Calibration failed"))
+    }
+
+    @Test
+    fun testCalibrationSucceedsWhenMovementValidatorPasses() {
+        val counter = CalibratingRepCounter(
+            fallbackBottom = fallbackBottom,
+            fallbackTop = fallbackTop
+        )
+        counter.movementValidator = {
+            CalibratingRepCounter.ValidationResult(true)
+        }
+
+        repeat(2) { counter.updateReps(165.0) }
+        repeat(2) { counter.updateReps(95.0) }
+        repeat(2) { counter.updateReps(145.0) }
+
+        assertEquals(CalibratingRepCounter.Phase.CALIBRATED, counter.phase)
+        assertFalse(counter.lastRepRejected)
     }
 }
