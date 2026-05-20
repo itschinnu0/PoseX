@@ -14,6 +14,8 @@ package com.example.posex.exercise
  * [repRejected]        — true if the rep that just completed was blocked by the form gate.
  *                        WorkoutScreen uses this to show a "rep not counted" message.
  * [rejectionReason]    — human-readable reason for rejection. Empty if not rejected.
+ * [exerciseCompleted]   — true when the exercise should end immediately
+ *                        (e.g., plank terminated by knees on the floor).
  */
 data class ExerciseAnalysisResult(
     val cues: List<FormCue>,
@@ -22,5 +24,6 @@ data class ExerciseAnalysisResult(
     val holdDurationSeconds: Int = 0,
     val isCalibrating: Boolean = false,
     val repRejected: Boolean = false,
-    val rejectionReason: String = ""
+    val rejectionReason: String = "",
+    val exerciseCompleted: Boolean = false
 )

@@ -33,7 +33,7 @@ import com.example.posex.exercise.PushupAnalyzer
 import com.example.posex.exercise.SquatsAnalyzer
 import com.example.posex.exercise.WorkoutSession
 import com.example.posex.exercise.WorkoutState
-import com.example.posex.feedback.FeedbackEngine
+import com.example.posex.feedback.PoseXTtsManager
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
 import com.google.mlkit.vision.pose.Pose
@@ -77,7 +77,7 @@ fun WorkoutScreen(
     // Shown briefly after a rep is rejected — cleared on next successful rep
     var rejectionText by remember { mutableStateOf("") }
 
-    val feedbackEngine = remember { FeedbackEngine(context) }
+    val ttsManager = remember { PoseXTtsManager(context) }
     val storageService = remember { StorageService(context) }
     val sessionId = remember { UUID.randomUUID().toString() }
     val sessionStartDate = remember { System.currentTimeMillis() }
@@ -91,9 +91,9 @@ fun WorkoutScreen(
             targetReps = 0,
             onStateChanged = { newState ->
                 workoutState = newState
-                feedbackEngine.setWorkoutState(newState)
+                ttsManager.setWorkoutState(newState)
                 if (newState is WorkoutState.Countdown) {
-                    feedbackEngine.speakCountdown(newState.secondsRemaining)
+                    ttsManager.speakCountdown(newState.secondsRemaining)
                 }
                 if (newState !is WorkoutState.Active) {
                     warningFrameCounts.clear()
@@ -104,7 +104,7 @@ fun WorkoutScreen(
     }
 
     DisposableEffect(Unit) {
-        onDispose { feedbackEngine.shutdown() }
+        onDispose { ttsManager.shutdown() }
     }
 
     fun resetAnalyzers() {
@@ -156,12 +156,17 @@ fun WorkoutScreen(
 
         lastResult = result
 
+        if (result.exerciseCompleted) {
+            saveAndExit()
+            return
+        }
+
         // ── Rep rejected — show rejection reason, speak it, skip normal feedback
         if (result.repRejected) {
             rejectionText = result.rejectionReason
             feedbackText = result.rejectionReason
             feedbackColor = Color(0xFFFF5252)
-            feedbackEngine.speak(result.rejectionReason)
+            ttsManager.speakCue(result.rejectionReason)
             session.onRepUpdated(result.repCount)
             return
         }
@@ -199,7 +204,7 @@ fun WorkoutScreen(
             FormCue.Severity.CRITICAL -> {
                 warningFrameCounts.clear()
                 session.recordCue(topCue.severity)
-                feedbackEngine.speak(topCue.message)
+                ttsManager.speakCue(topCue.message)
             }
             FormCue.Severity.WARNING -> {
                 val currentCount = (warningFrameCounts[topCue.message] ?: 0) + 1
@@ -207,7 +212,7 @@ fun WorkoutScreen(
                 warningFrameCounts[topCue.message] = currentCount
                 if (currentCount >= warningFrameThreshold) {
                     session.recordCue(topCue.severity)
-                    feedbackEngine.speak(topCue.message)
+                    ttsManager.speakCue(topCue.message)
                     warningFrameCounts[topCue.message] = 0
                 }
             }

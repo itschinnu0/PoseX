@@ -3,89 +3,170 @@ package com.example.posex.exercise
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseLandmark
 import kotlin.math.abs
+import kotlin.math.hypot
 
 object PlankAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
-    private var holdStartTime: Long? = null
-    private var totalHoldSeconds = 0
+
+    private const val MIN_GOOD_ANGLE = 165.0
+    private const val MAX_GOOD_ANGLE = 185.0
+
+    private val timer = ActiveHoldTimer()
+    private var isTerminated: Boolean = false
 
     fun resetRepCounter() {
-        holdStartTime = null
-        totalHoldSeconds = 0
+        timer.reset()
+        isTerminated = false
     }
 
     fun analyze(pose: Pose): ExerciseAnalysisResult {
         val cues = mutableListOf<FormCue>()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
-        val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
         val leftHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
-        val rightHip = pose.getPoseLandmark(PoseLandmark.RIGHT_HIP)
+        val leftKnee = pose.getPoseLandmark(PoseLandmark.LEFT_KNEE)
         val leftAnkle = pose.getPoseLandmark(PoseLandmark.LEFT_ANKLE)
-        val rightAnkle = pose.getPoseLandmark(PoseLandmark.RIGHT_ANKLE)
         val leftElbow = pose.getPoseLandmark(PoseLandmark.LEFT_ELBOW)
+
+        val rightShoulder = pose.getPoseLandmark(PoseLandmark.RIGHT_SHOULDER)
+        val rightHip = pose.getPoseLandmark(PoseLandmark.RIGHT_HIP)
+        val rightKnee = pose.getPoseLandmark(PoseLandmark.RIGHT_KNEE)
+        val rightAnkle = pose.getPoseLandmark(PoseLandmark.RIGHT_ANKLE)
         val rightElbow = pose.getPoseLandmark(PoseLandmark.RIGHT_ELBOW)
 
-        val keyLandmarks = listOf(
-            leftShoulder, rightShoulder,
-            leftHip, rightHip,
-            leftAnkle, rightAnkle
-        )
+        val leftConfidence = listOf(leftShoulder, leftHip, leftKnee, leftAnkle)
+            .mapNotNull { it?.inFrameLikelihood }.average()
+        val rightConfidence = listOf(rightShoulder, rightHip, rightKnee, rightAnkle)
+            .mapNotNull { it?.inFrameLikelihood }.average()
 
-        if (keyLandmarks.any { it == null || it.inFrameLikelihood < MIN_CONFIDENCE }) {
-            holdStartTime = null
+        val useLeft = leftConfidence >= rightConfidence
+
+        val shoulder = if (useLeft) leftShoulder else rightShoulder
+        val hip = if (useLeft) leftHip else rightHip
+        val knee = if (useLeft) leftKnee else rightKnee
+        val ankle = if (useLeft) leftAnkle else rightAnkle
+        val elbow = if (useLeft) leftElbow else rightElbow
+
+        if (isTerminated) {
             cues.add(FormCue(
-                "Move into frame so your full body is visible",
-                FormCue.Severity.INFO
-            ))
-            return ExerciseAnalysisResult(cues, 0, null, totalHoldSeconds)
-        }
-
-        val shoulderMidY = (leftShoulder!!.position.y + rightShoulder!!.position.y) / 2
-        val shoulderMidX = (leftShoulder.position.x + rightShoulder.position.x) / 2
-        val hipMidY = (leftHip!!.position.y + rightHip!!.position.y) / 2
-        val hipMidX = (leftHip.position.x + rightHip.position.x) / 2
-        val ankleMidY = (leftAnkle!!.position.y + rightAnkle!!.position.y) / 2
-        val ankleMidX = (leftAnkle.position.x + rightAnkle.position.x) / 2
-
-        val expectedHipY = shoulderMidY + (ankleMidY - shoulderMidY) *
-                ((hipMidX - shoulderMidX) / (ankleMidX - shoulderMidX + 0.001f))
-
-        val hipDeviation = (hipMidY - expectedHipY)
-        val isGoodForm = hipDeviation in -40.0..40.0
-
-        if (isGoodForm) {
-            if (holdStartTime == null) holdStartTime = System.currentTimeMillis()
-            totalHoldSeconds = ((System.currentTimeMillis() - holdStartTime!!) / 1000).toInt()
-        } else {
-            holdStartTime = null
-        }
-
-        // Hip sag/pike — CRITICAL: spinal compression/strain risk
-        when {
-            hipDeviation > 40 -> cues.add(FormCue(
-                "Lift your hips, your body is sagging down",
+                "Knees dropped to the floor — exercise ended",
                 FormCue.Severity.CRITICAL
             ))
-            hipDeviation < -40 -> cues.add(FormCue(
-                "Lower your hips, your body is too high",
-                FormCue.Severity.CRITICAL
-            ))
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = 0,
+                metricValue = null,
+                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt(),
+                exerciseCompleted = true
+            )
         }
 
-        // Elbow position — WARNING: shoulder impingement risk over a long hold
-        if (leftElbow != null && rightElbow != null &&
-            leftElbow.inFrameLikelihood > MIN_CONFIDENCE &&
-            rightElbow.inFrameLikelihood > MIN_CONFIDENCE
+        if (shoulder == null || hip == null || knee == null || ankle == null ||
+            shoulder.inFrameLikelihood < MIN_CONFIDENCE ||
+            hip.inFrameLikelihood < MIN_CONFIDENCE ||
+            knee.inFrameLikelihood < MIN_CONFIDENCE ||
+            ankle.inFrameLikelihood < MIN_CONFIDENCE
         ) {
-            val leftShoulderElbowDiff = abs(leftShoulder.position.x - leftElbow.position.x)
-            val rightShoulderElbowDiff = abs(rightShoulder.position.x - rightElbow.position.x)
+            timer.forcePause()
+            cues.add(FormCue("Full body must be visible", FormCue.Severity.INFO))
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = 0,
+                metricValue = null,
+                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
+            )
+        }
 
-            if (leftShoulderElbowDiff > 50 || rightShoulderElbowDiff > 50) {
+        val dx = shoulder.position.x - hip.position.x
+        val dy = shoulder.position.y - hip.position.y
+        val torsoLength = hypot(dx.toDouble(), dy.toDouble()).toFloat()
+        val safeTorsoLength = torsoLength.coerceAtLeast(100f)
+
+        val minElevationThreshold = safeTorsoLength * 0.15f
+        val kneeDropThreshold = safeTorsoLength * 0.10f
+        val maxElbowOffsetThreshold = safeTorsoLength * 0.25f
+
+        if (elbow != null && elbow.inFrameLikelihood >= MIN_CONFIDENCE) {
+            val armHeight = elbow.position.y - shoulder.position.y
+            if (armHeight < minElevationThreshold) {
+                timer.forcePause()
+                cues.add(FormCue("Lift your body off the floor", FormCue.Severity.CRITICAL))
+                return ExerciseAnalysisResult(
+                    cues = cues,
+                    repCount = 0,
+                    metricValue = null,
+                    holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
+                )
+            }
+
+            val elbowOffset = abs(shoulder.position.x - elbow.position.x)
+            if (elbowOffset > maxElbowOffsetThreshold) {
                 cues.add(FormCue(
-                    "Place your elbows directly under your shoulders",
+                    "Keep your elbows directly under your shoulders",
                     FormCue.Severity.WARNING
+                ))
+            }
+        }
+
+        val kneeToGround = ankle.position.y - knee.position.y
+        if (kneeToGround < kneeDropThreshold) {
+            timer.forcePause()
+            isTerminated = true
+            cues.add(FormCue(
+                "Knees dropped to the floor — exercise ended",
+                FormCue.Severity.CRITICAL
+            ))
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = 0,
+                metricValue = null,
+                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt(),
+                exerciseCompleted = true
+            )
+        }
+
+        val kneeAngle = PoseUtils.calculateAngle(shoulder, hip, ankle)
+
+        val expectedHipY = shoulder.position.y +
+                (ankle.position.y - shoulder.position.y) *
+                ((hip.position.x - shoulder.position.x) /
+                        (ankle.position.x - shoulder.position.x + 0.001f))
+        val hipsSagging = hip.position.y > expectedHipY
+
+        val kneeNearAnkle = abs(knee.position.y - ankle.position.y) <
+                abs(knee.position.y - hip.position.y)
+        if (kneeNearAnkle) {
+            timer.forcePause()
+            isTerminated = true
+            cues.add(FormCue(
+                "Knees dropped to the floor — exercise ended",
+                FormCue.Severity.CRITICAL
+            ))
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = 0,
+                metricValue = kneeAngle,
+                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt(),
+                exerciseCompleted = true
+            )
+        }
+
+        val hipsTooHigh = kneeAngle < MIN_GOOD_ANGLE
+        val hipsTooLow = kneeAngle > MAX_GOOD_ANGLE || hipsSagging
+
+        val isFormValid = !hipsTooHigh && !hipsTooLow
+        timer.processFrame(isFormValid)
+
+        if (!timer.isTimerRunning && !isFormValid) {
+            when {
+                hipsTooHigh -> cues.add(FormCue(
+                    "Lower your hips to a straight line",
+                    FormCue.Severity.CRITICAL
+                ))
+                hipsTooLow -> cues.add(FormCue(
+                    "Raise your hips, engage your core",
+                    FormCue.Severity.CRITICAL
                 ))
             }
         }
@@ -94,6 +175,11 @@ object PlankAnalyzer {
             cues.add(FormCue("Good form, hold steady", FormCue.Severity.SUCCESS))
         }
 
-        return ExerciseAnalysisResult(cues, 0, hipDeviation.toDouble(), totalHoldSeconds)
+        return ExerciseAnalysisResult(
+            cues = cues,
+            repCount = 0,
+            metricValue = kneeAngle,
+            holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
+        )
     }
 }
