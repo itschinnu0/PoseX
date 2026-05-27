@@ -9,19 +9,23 @@ object PlankAnalyzer {
 
     private const val MIN_CONFIDENCE = 0.5f
 
-    private const val MIN_GOOD_ANGLE = 165.0
-    private const val MAX_GOOD_ANGLE = 185.0
+    private const val MIN_GOOD_ANGLE = 155.0
+    private const val MAX_GOOD_ANGLE = 195.0
+    private const val TARGET_HOLD_SECONDS = 60
 
     private val timer = ActiveHoldTimer()
     private var isTerminated: Boolean = false
+    private var consecutiveKneeDropFrames: Int = 0
 
     fun resetRepCounter() {
         timer.reset()
         isTerminated = false
+        consecutiveKneeDropFrames = 0
     }
 
     fun analyze(pose: Pose): ExerciseAnalysisResult {
         val cues = mutableListOf<FormCue>()
+        val holdSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
 
         val leftShoulder = pose.getPoseLandmark(PoseLandmark.LEFT_SHOULDER)
         val leftHip = pose.getPoseLandmark(PoseLandmark.LEFT_HIP)
@@ -57,7 +61,7 @@ object PlankAnalyzer {
                 cues = cues,
                 repCount = 0,
                 metricValue = null,
-                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt(),
+                holdDurationSeconds = holdSeconds,
                 exerciseCompleted = true
             )
         }
@@ -74,7 +78,7 @@ object PlankAnalyzer {
                 cues = cues,
                 repCount = 0,
                 metricValue = null,
-                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
+                holdDurationSeconds = holdSeconds
             )
         }
 
@@ -96,7 +100,7 @@ object PlankAnalyzer {
                     cues = cues,
                     repCount = 0,
                     metricValue = null,
-                    holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
+                    holdDurationSeconds = holdSeconds
                 )
             }
 
@@ -110,7 +114,15 @@ object PlankAnalyzer {
         }
 
         val kneeToGround = ankle.position.y - knee.position.y
-        if (kneeToGround < kneeDropThreshold) {
+        val isKneeDropped = kneeToGround < kneeDropThreshold
+
+        if (timer.isTimerRunning && isKneeDropped) {
+            consecutiveKneeDropFrames++
+        } else {
+            consecutiveKneeDropFrames = 0
+        }
+
+        if (consecutiveKneeDropFrames >= 5) {
             timer.forcePause()
             isTerminated = true
             cues.add(FormCue(
@@ -121,7 +133,7 @@ object PlankAnalyzer {
                 cues = cues,
                 repCount = 0,
                 metricValue = null,
-                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt(),
+                holdDurationSeconds = holdSeconds,
                 exerciseCompleted = true
             )
         }
@@ -134,23 +146,6 @@ object PlankAnalyzer {
                         (ankle.position.x - shoulder.position.x + 0.001f))
         val hipsSagging = hip.position.y > expectedHipY
 
-        val kneeNearAnkle = abs(knee.position.y - ankle.position.y) <
-                abs(knee.position.y - hip.position.y)
-        if (kneeNearAnkle) {
-            timer.forcePause()
-            isTerminated = true
-            cues.add(FormCue(
-                "Knees dropped to the floor — exercise ended",
-                FormCue.Severity.CRITICAL
-            ))
-            return ExerciseAnalysisResult(
-                cues = cues,
-                repCount = 0,
-                metricValue = kneeAngle,
-                holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt(),
-                exerciseCompleted = true
-            )
-        }
 
         val hipsTooHigh = kneeAngle < MIN_GOOD_ANGLE
         val hipsTooLow = kneeAngle > MAX_GOOD_ANGLE || hipsSagging
@@ -175,11 +170,22 @@ object PlankAnalyzer {
             cues.add(FormCue("Good form, hold steady", FormCue.Severity.SUCCESS))
         }
 
+        if (holdSeconds >= TARGET_HOLD_SECONDS) {
+            cues.add(FormCue("Hold complete — great job!", FormCue.Severity.SUCCESS))
+            return ExerciseAnalysisResult(
+                cues = cues,
+                repCount = 0,
+                metricValue = kneeAngle,
+                holdDurationSeconds = holdSeconds,
+                exerciseCompleted = true
+            )
+        }
+
         return ExerciseAnalysisResult(
             cues = cues,
             repCount = 0,
             metricValue = kneeAngle,
-            holdDurationSeconds = (timer.accumulatedTimeMillis.coerceAtLeast(0L) / 1000).toInt()
+            holdDurationSeconds = holdSeconds
         )
     }
 }

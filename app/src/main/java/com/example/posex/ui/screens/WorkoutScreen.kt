@@ -33,7 +33,7 @@ import com.example.posex.exercise.PushupAnalyzer
 import com.example.posex.exercise.SquatsAnalyzer
 import com.example.posex.exercise.WorkoutSession
 import com.example.posex.exercise.WorkoutState
-import com.example.posex.feedback.PoseXTtsManager
+import com.example.posex.audio.PoseXTtsManager
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
 import com.google.mlkit.vision.pose.Pose

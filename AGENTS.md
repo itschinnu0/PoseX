@@ -7,28 +7,32 @@
 
 ### Core Data Flow
 1. **Camera Input** → `PoseAnalyzer` (ML Kit integration) → `Pose` object
-2. **Pose Object** → Exercise-specific analyzer (e.g., `SquatsAnalyzer`) → Feedback list
-3. **Feedback** → `FeedbackEngine` (text-to-speech) + UI (visual overlay)
+2. **Pose Object** → Exercise-specific analyzer (e.g., `SquatsAnalyzer`) → `ExerciseAnalysisResult`
+3. **Cues** → `CuePrioritizer` → UI banner + `PoseXTtsManager` (text-to-speech)
 
 ### Key Modules
 - **UI & Navigation**: `MainActivity` hosts `PoseXApp()` which switches between `HomeScreen` and `WorkoutScreen` based on selected exercise.
+- **Session State**: `WorkoutSession` + `WorkoutState` handle countdown, pause/resume, rep tracking, and cue counts.
+- **Pose Readiness**: `PoseReadinessChecker` validates the user is in frame before countdown starts.
 - **Camera Pipeline**: `CameraPreview` configures CameraX front camera + `ImageAnalysis` analyzer and streams frames to `PoseAnalyzer`.
 - **Pose Rendering**: `PoseOverlay` draws skeleton + landmarks with front-camera mirroring and rotated frame scaling.
-- **Exercise Logic**: `SquatsAnalyzer`, `PushupAnalyzer`, `PlankAnalyzer` compute metrics + feedback and update `RepCounter` or hold timer.
-- **Feedback Output**: `FeedbackEngine` uses Text-to-Speech with cooldown to avoid audio spam.
+- **Exercise Logic**: `SquatsAnalyzer`, `PushupAnalyzer`, `PlankAnalyzer` compute metrics + feedback and update `CalibratingRepCounter` or `ActiveHoldTimer`.
+- **Feedback Output**: `PoseXTtsManager` throttles speech and respects workout state.
+- **Persistence**: `StorageService` stores `SessionRecord` + `PersonalBest` in SharedPreferences.
 
 ### Key Architectural Decisions
 
 **Exercise Analyzers as Objects** (`package exercise/`):
 - `SquatsAnalyzer`, `PushupAnalyzer`, `PlankAnalyzer` are **singleton objects**, not classes
-- Each implements identical `analyze(pose: Pose): List<String>` contract
-- **Why objects**: Single responsibility, stateless, reusable without instantiation
-- Returns multiple feedback strings; **only the first one is shown** to the user (in `WorkoutScreen`)
+- Each implements `analyze(pose: Pose): ExerciseAnalysisResult`
+- **Why objects**: the analyzers keep per-exercise state (baseline, timers) without needing DI
+- `WorkoutScreen` uses `CuePrioritizer.topCue(cues)` to surface the highest severity cue
 
 **Pose Landmark Confidence Filtering**:
 - All analyzers enforce `MIN_CONFIDENCE = 0.5f` to validate pose landmarks
 - This prevents feedback on poor/ambiguous detections
 - Missing or low-confidence landmarks trigger exercise-specific "Move into frame" messages
+- Safe-screen aborts reset state: `repCounter.abortCurrentRep()` (squat/pushup) and `timer.forcePause()` (plank)
 
 **Front Camera Coordinate Transformation** (`PoseOverlay.kt`):
 - CameraX in portrait delivers rotated frames (width ↔ height swap)
@@ -43,12 +47,12 @@
    ```kotlin
    object NewExerciseAnalyzer {
        private const val MIN_CONFIDENCE = 0.5f
-       fun analyze(pose: Pose): List<String> { /* return feedback list */ }
+       fun analyze(pose: Pose): ExerciseAnalysisResult { /* return result */ }
    }
    ```
-3. Add case in `WorkoutScreen.processPose()`
+3. Add case in `WorkoutScreen.handlePoseFrame()`
 4. Add exercise card to `HomeScreen.kt`
-5. Ensure rep/hold reset is included in `WorkoutScreen.stopExercise()`
+5. Ensure rep/hold reset is included in `WorkoutScreen.resetAnalyzers()`
 
 **Common Pose Landmarks** (from `com.google.mlkit.vision.pose.PoseLandmark`):
 - Shoulders/Hips/Elbows/Wrists/Knees/Ankles (left/right pairs)
@@ -98,23 +102,25 @@ Uses vector dot product to compute angle at `mid` point and is reused by all ana
 
 **Feedback System**:
 - Displayed in banner at screen bottom (WorkoutScreen)
-- Color changes based on feedback type (good form = green, error = red)
-- Text-to-speech triggered on non-success feedback with 4-second cooldown (FeedbackEngine line 12)
+- Color changes based on cue severity (success = green, warning = amber, critical = red)
+- Cue selection uses `CuePrioritizer` (CRITICAL > WARNING > INFO > SUCCESS)
+- Text-to-speech is handled by `PoseXTtsManager` and respects cooldowns and workout state
 
 **Exercise Analysis Result**:
-- `ExerciseAnalysisResult` bundles `feedback`, `repCount`, `metricValue`, and `holdDurationSeconds`
+- `ExerciseAnalysisResult` bundles `cues`, `repCount`, `metricValue`, and `holdDurationSeconds`
+- `exerciseCompleted` ends the workout immediately (e.g., plank knees down)
 - Plank uses `holdDurationSeconds` while squat/pushup use `repCount`
 
 ## Performance Considerations
 
 **Pose Detection Streaming**:
 - `PoseAnalyzer` runs in **STREAM_MODE** (continuous, fast) not accuracy mode
-- Processes every frame; resource-intensive operation
+- Throttled to one ML Kit inference every ~100ms to reduce thermal load
 - Callbacks include proper cleanup: `imageProxy.close()` on completion
 
-**TextToSpeech Cooldown**:
-- `FeedbackEngine` enforces 4-second minimum between spoken messages (line 12)
-- Prevents audio spam during form corrections
+**TextToSpeech Throttling**:
+- `PoseXTtsManager` enforces global and same-message cooldowns
+- Also halts speech when workout is not in `WorkoutState.Active`
 
 ## Dependencies & External Integration
 
@@ -128,21 +134,21 @@ Uses vector dot product to compute angle at `mid` point and is reused by all ana
 - Lifecycle-aware; properly disposed in composables
 
 **Text-to-Speech**:
-- Android built-in; initialized in FeedbackEngine with Locale.US
-- Must be shut down explicitly (composable DisposableEffect in WorkoutScreen line 71-75)
+- Android built-in; wrapped by `PoseXTtsManager` in `com.example.posex.feedback`
+- Must be shut down explicitly (composable `DisposableEffect` in `WorkoutScreen`)
 
 ## Testing Notes
 
 - Test instrumentation runner: `androidx.test.runner.AndroidJUnitRunner`
 - UI tests use Compose testing framework (espresso + compose-ui-test)
-- `RepCounterTest` exists, but its constructor call is out of sync with `RepCounter` parameters and needs updating to pass
-- Currently minimal test coverage; exercise analyzers would benefit from unit tests
+- Unit tests include `RepCounterTest` and `PushupAnalyzerTest`
+- Exercise analyzers would still benefit from broader unit test coverage
 
 ## Common Pitfalls & Gotchas
 
 1. **Pose landmark may be null** even with high confidence; always check before dereferencing
 2. **Screen coordinates ≠ image coordinates**: overlay applies rotation & scale transforms
-3. **First feedback only shown**: if multiple issues exist, only primary message reaches user
+3. **Cue priority**: `CuePrioritizer` always selects highest severity, not first emitted
 4. **Front camera mirroring**: X-axis flip required for correct visual overlay
 5. **ML Kit beta version**: breaking changes possible in future updates; monitor release notes
 
@@ -153,4 +159,3 @@ Uses vector dot product to compute angle at `mid` point and is reused by all ana
 - f58bba1: Refactor exercise analysis logic and implement plank hold tracking
 - 97c7560: Unify rep counting and improve workout UI
 - 05bd428: Implement squat rep counting and enhance feedback
-
