@@ -14,9 +14,11 @@ import java.util.UUID
  *   "sessions_SQUAT"  → JSON array of SessionRecord objects
  *   "sessions_PUSHUP" → JSON array of SessionRecord objects
  *   "sessions_PLANK"  → JSON array of SessionRecord objects
- *   "pb_SQUAT"        → JSON object for PersonalBest
- *   "pb_PUSHUP"       → JSON object for PersonalBest
- *   "pb_PLANK"        → JSON object for PersonalBest
+ *   "pb_SQUAT_<profileId>"  → JSON object for PersonalBest
+ *   "pb_PUSHUP_<profileId>" → JSON object for PersonalBest
+ *   "pb_PLANK_<profileId>"  → JSON object for PersonalBest
+ *
+ * Legacy personal bests (no profile) use "pb_<exerciseType>" keys and are read as fallback.
  *
  * All decode functions are defensive: missing or malformed keys return
  * default values rather than throwing. This means old installs without
@@ -69,11 +71,13 @@ class StorageService(context: Context) {
     // ── Personal best storage ─────────────────────────────────────────────
 
     /**
-     * Returns the current personal best for [exerciseType].
+     * Returns the current personal best for [exerciseType] and [profileId].
      * Returns null if no session has ever been saved for this exercise.
      */
-    fun getPersonalBest(exerciseType: String): PersonalBest? {
-        val raw = prefs.getString(pbKey(exerciseType), null) ?: return null
+    fun getPersonalBest(exerciseType: String, profileId: String?): PersonalBest? {
+        val raw = prefs.getString(pbKey(exerciseType, profileId), null)
+            ?: prefs.getString(pbKey(exerciseType), null)
+            ?: return null
         return try {
             decodePersonalBest(JSONObject(raw))
         } catch (e: Exception) {
@@ -96,8 +100,8 @@ class StorageService(context: Context) {
     }
 
     private fun updatePersonalBestIfNeeded(session: SessionRecord) {
-        val key = pbKey(session.exerciseType)
-        val current = getPersonalBest(session.exerciseType)
+        val key = pbKey(session.exerciseType, session.profileId)
+        val current = getPersonalBest(session.exerciseType, session.profileId)
 
         val newBest = if (current == null) {
             // First session ever for this exercise
@@ -132,6 +136,7 @@ class StorageService(context: Context) {
         put("durationMs", s.durationMs)
         put("criticalCues", s.criticalCues)
         put("warningCues", s.warningCues)
+        put("profileId", s.profileId)
     }
 
     private fun encodePersonalBest(pb: PersonalBest): JSONObject = JSONObject().apply {
@@ -152,7 +157,8 @@ class StorageService(context: Context) {
                 holdSeconds  = obj.optInt("holdSeconds", 0),
                 durationMs   = obj.optLong("durationMs", 0L),
                 criticalCues = obj.optInt("criticalCues", 0),
-                warningCues  = obj.optInt("warningCues", 0)
+                warningCues  = obj.optInt("warningCues", 0),
+                profileId    = obj.optString("profileId", "")
             )
         } catch (e: Exception) {
             // Corrupt record — skip it rather than crashing
@@ -175,9 +181,15 @@ class StorageService(context: Context) {
     // ── Key builders ──────────────────────────────────────────────────────
 
     private fun sessionKey(exerciseType: String) = "sessions_$exerciseType"
+    private fun pbKey(exerciseType: String, profileId: String?): String {
+        val suffix = profileId?.ifBlank { DEFAULT_PROFILE_KEY } ?: DEFAULT_PROFILE_KEY
+        return "pb_${exerciseType}_$suffix"
+    }
+
     private fun pbKey(exerciseType: String) = "pb_$exerciseType"
 
     companion object {
         private const val PREFS_NAME = "posex_storage"
+        private const val DEFAULT_PROFILE_KEY = "default"
     }
 }

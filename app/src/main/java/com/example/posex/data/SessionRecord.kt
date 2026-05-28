@@ -15,6 +15,7 @@ package com.example.posex.data
  *                  in mind if you add a rest timer later.
  * [criticalCues] — number of CRITICAL-severity cues fired during the session.
  * [warningCues]  — number of WARNING-severity cues fired during the session.
+ * [profileId]    — profile ID for the session. Default value for backward compatibility.
  */
 data class SessionRecord(
     val id: String,
@@ -24,5 +25,6 @@ data class SessionRecord(
     val holdSeconds: Int,
     val durationMs: Long,
     val criticalCues: Int,
-    val warningCues: Int
+    val warningCues: Int,
+    val profileId: String = ""
 )
