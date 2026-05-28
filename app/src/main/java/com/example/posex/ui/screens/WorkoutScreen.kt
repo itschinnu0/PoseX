@@ -37,6 +37,7 @@ import com.example.posex.exercise.WorkoutState
 import com.example.posex.audio.PoseXTtsManager
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
+import com.example.posex.ui.components.PhoneOrientation
 import com.example.posex.ui.components.PhoneTiltWarning
 import com.google.mlkit.vision.pose.Pose
 import java.util.UUID
@@ -306,7 +307,12 @@ fun WorkoutScreen(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .padding(top = 80.dp)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp),
+            expectedOrientation = when (exerciseType) {
+                ExerciseType.SQUAT  -> PhoneOrientation.PORTRAIT
+                ExerciseType.PUSHUP -> PhoneOrientation.LANDSCAPE
+                ExerciseType.PLANK  -> PhoneOrientation.LANDSCAPE
+            }
         )
 
         // ── Countdown overlay ─────────────────────────────────────────────

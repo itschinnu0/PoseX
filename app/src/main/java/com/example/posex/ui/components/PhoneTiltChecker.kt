@@ -27,10 +27,13 @@ import androidx.compose.ui.unit.sp
 import kotlin.math.abs
 import kotlin.math.acos
 
+enum class PhoneOrientation { PORTRAIT, LANDSCAPE }
+
 @Composable
 fun PhoneTiltWarning(
     context: Context,
     modifier: Modifier = Modifier,
+    expectedOrientation: PhoneOrientation = PhoneOrientation.PORTRAIT,
     tiltThresholdDegrees: Float = 30f,
     onTiltStateChanged: (isTooTilted: Boolean) -> Unit = {}
 ) {
@@ -46,11 +49,18 @@ fun PhoneTiltWarning(
     var isTooTilted by remember { mutableStateOf(false) }
     val onTiltStateChangedState by rememberUpdatedState(onTiltStateChanged)
 
-    DisposableEffect(sensorManager, accelerometer, tiltThresholdDegrees) {
+    DisposableEffect(sensorManager, accelerometer, expectedOrientation, tiltThresholdDegrees) {
         val listener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
+                val gravityX = event.values.getOrNull(0) ?: return
                 val gravityY = event.values.getOrNull(1) ?: return
-                val ratio = (abs(gravityY) / 9.8f).coerceIn(0f, 1f)
+
+                val relevantGravity = when (expectedOrientation) {
+                    PhoneOrientation.PORTRAIT  -> abs(gravityY)
+                    PhoneOrientation.LANDSCAPE -> abs(gravityX)
+                }
+
+                val ratio = (relevantGravity / 9.8f).coerceIn(0f, 1f)
                 val tiltAngle = Math.toDegrees(acos(ratio).toDouble()).toFloat()
                 val nowTooTilted = tiltAngle > tiltThresholdDegrees
                 if (nowTooTilted != isTooTilted) {
@@ -82,14 +92,12 @@ fun PhoneTiltWarning(
                 .background(Color(0xCCFF5252), RoundedCornerShape(12.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp)
         ) {
+            val message = when (expectedOrientation) {
+                PhoneOrientation.PORTRAIT -> "⚠  Hold your phone upright for accurate detection"
+                PhoneOrientation.LANDSCAPE -> "⚠  Lay your phone on its side for accurate detection"
+            }
             Text(
-                text = "⚠",
-                color = Color.White,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text = "  Prop your phone more upright for accurate detection",
+                text = message,
                 color = Color.White,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
