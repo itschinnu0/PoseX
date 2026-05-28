@@ -188,6 +188,9 @@
                 )
             }
 
+            android.util.Log.d("PlankDebug",
+                "holdSeconds=$holdSeconds targetHoldSeconds=$targetHoldSeconds")
+
             return ExerciseAnalysisResult(
                 cues = cues,
                 repCount = 0,
