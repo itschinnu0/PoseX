@@ -112,17 +112,9 @@ fun SettingsScreen(
         }
 
         SectionDivider()
-
-        SectionHeader("Switch Profile")
-
         val otherProfiles = profiles.filter { it.id != activeProfile?.id }
         if (otherProfiles.isEmpty()) {
-            Text(
-                text = "No other profiles",
-                color = Color(0xFFB0BEC5),
-                fontSize = 13.sp
-            )
-        } else {
+        SectionHeader("Switch Profile")
             Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 otherProfiles.forEach { profile ->
                     ProfileCard(
