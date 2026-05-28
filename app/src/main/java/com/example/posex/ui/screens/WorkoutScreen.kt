@@ -46,7 +46,8 @@ import java.util.UUID
 fun WorkoutScreen(
     exerciseType: ExerciseType,
     config: WorkoutConfig,
-    onExit: () -> Unit
+    activeProfileId: String?,
+    onExit: (String) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -156,13 +157,14 @@ fun WorkoutScreen(
                     holdSeconds  = lastResult?.holdDurationSeconds ?: 0,
                     durationMs   = durationMs,
                     criticalCues = session.getCriticalCueCount(),
-                    warningCues  = session.getWarningCueCount()
+                    warningCues  = session.getWarningCueCount(),
+                    profileId    = activeProfileId ?: ""
                 )
             )
         }
         resetAnalyzers()
         session.stop()
-        onExit()
+        onExit(sessionId)
     }
 
     fun handlePoseFrame(pose: Pose) {
