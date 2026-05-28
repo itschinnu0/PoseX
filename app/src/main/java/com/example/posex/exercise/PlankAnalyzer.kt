@@ -119,9 +119,7 @@
             }
 
             val kneeToGround = ankle.position.y - knee.position.y
-            val kneeNearAnkle = abs(knee.position.y - ankle.position.y) <
-                    abs(knee.position.y - hip.position.y)
-            val isKneeDropped = kneeToGround < kneeDropThreshold || kneeNearAnkle
+            val isKneeDropped = kneeToGround < kneeDropThreshold
 
             if (timer.isTimerRunning && isKneeDropped) {
                 consecutiveKneeDropFrames++
@@ -187,9 +185,6 @@
                     exerciseCompleted = true
                 )
             }
-
-            android.util.Log.d("PlankDebug",
-                "holdSeconds=$holdSeconds targetHoldSeconds=$targetHoldSeconds")
 
             return ExerciseAnalysisResult(
                 cues = cues,
