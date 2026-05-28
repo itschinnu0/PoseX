@@ -33,12 +33,12 @@ fun PoseOverlay(
             return Offset(x, y)
         }
 
-        fun drawBone(startId: Int, endId: Int) {
+        fun drawBone(startId: Int, endId: Int, confidenceThreshold: Float = 0.5f) {
             val start = pose.getPoseLandmark(startId)
             val end = pose.getPoseLandmark(endId)
             if (start != null && end != null &&
-                start.inFrameLikelihood > 0.5f &&
-                end.inFrameLikelihood > 0.5f
+                start.inFrameLikelihood > confidenceThreshold &&
+                end.inFrameLikelihood > confidenceThreshold
             ) {
                 drawLine(
                     color = Color(0xFF00E5FF),
@@ -56,12 +56,12 @@ fun PoseOverlay(
         drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_HIP)
 
         // Left arm
-        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_ELBOW)
-        drawBone(PoseLandmark.LEFT_ELBOW, PoseLandmark.LEFT_WRIST)
+        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_ELBOW, 0.7f)
+        drawBone(PoseLandmark.LEFT_ELBOW, PoseLandmark.LEFT_WRIST, 0.7f)
 
         // Right arm
-        drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_ELBOW)
-        drawBone(PoseLandmark.RIGHT_ELBOW, PoseLandmark.RIGHT_WRIST)
+        drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_ELBOW, 0.7f)
+        drawBone(PoseLandmark.RIGHT_ELBOW, PoseLandmark.RIGHT_WRIST, 0.7f)
 
         // Left leg
         drawBone(PoseLandmark.LEFT_HIP, PoseLandmark.LEFT_KNEE)
@@ -73,7 +73,12 @@ fun PoseOverlay(
 
         // Dots
         pose.allPoseLandmarks.forEach { landmark ->
-            if (landmark.inFrameLikelihood > 0.5f) {
+            val threshold = when (landmark.landmarkType) {
+                PoseLandmark.LEFT_ELBOW, PoseLandmark.RIGHT_ELBOW,
+                PoseLandmark.LEFT_WRIST, PoseLandmark.RIGHT_WRIST -> 0.7f
+                else -> 0.5f
+            }
+            if (landmark.inFrameLikelihood > threshold) {
                 drawCircle(
                     color = Color.White,
                     radius = 10f,

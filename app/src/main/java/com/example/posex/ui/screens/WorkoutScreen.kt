@@ -31,6 +31,7 @@ import com.example.posex.exercise.PlankAnalyzer
 import com.example.posex.exercise.PoseReadinessChecker
 import com.example.posex.exercise.PushupAnalyzer
 import com.example.posex.exercise.SquatsAnalyzer
+import com.example.posex.exercise.WorkoutConfig
 import com.example.posex.exercise.WorkoutSession
 import com.example.posex.exercise.WorkoutState
 import com.example.posex.audio.PoseXTtsManager
@@ -42,6 +43,7 @@ import java.util.UUID
 @Composable
 fun WorkoutScreen(
     exerciseType: ExerciseType,
+    config: WorkoutConfig,
     onExit: () -> Unit
 ) {
     val context = LocalContext.current
@@ -66,7 +68,19 @@ fun WorkoutScreen(
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission) permissionLauncher.launch(Manifest.permission.CAMERA)
+        if (exerciseType == ExerciseType.PLANK) {
+            PlankAnalyzer.setTargetHoldSeconds(config.holdSeconds)
+        }
     }
+
+    val targetHoldSeconds = if (exerciseType == ExerciseType.PLANK) {
+        config.holdSeconds
+    } else {
+        0
+    }
+
+    var lastState by remember { mutableStateOf<WorkoutState?>(null) }
+    var currentSetIndex by remember { mutableStateOf(1) }
 
     var currentPose by remember { mutableStateOf<Pose?>(null) }
     var feedbackText by remember { mutableStateOf("Get into position") }
@@ -88,7 +102,9 @@ fun WorkoutScreen(
     val session = remember {
         WorkoutSession(
             scope = coroutineScope,
-            targetReps = 0,
+            targetReps = if (exerciseType == ExerciseType.PLANK) 0 else config.repsPerSet,
+            totalSets = config.sets,
+            restSeconds = config.restSeconds,
             onStateChanged = { newState ->
                 workoutState = newState
                 ttsManager.setWorkoutState(newState)
@@ -113,6 +129,17 @@ fun WorkoutScreen(
             ExerciseType.PUSHUP -> PushupAnalyzer.resetRepCounter()
             ExerciseType.PLANK  -> PlankAnalyzer.resetRepCounter()
         }
+    }
+
+    LaunchedEffect(workoutState) {
+        val previousState = lastState
+        if (workoutState is WorkoutState.Rest) {
+            resetAnalyzers()
+            currentSetIndex = (workoutState as WorkoutState.Rest).currentSet
+        } else if (workoutState is WorkoutState.WaitingForPose && previousState is WorkoutState.Rest) {
+            currentSetIndex = previousState.currentSet + 1
+        }
+        lastState = workoutState
     }
 
     fun saveAndExit() {
@@ -157,6 +184,16 @@ fun WorkoutScreen(
         lastResult = result
 
         if (result.exerciseCompleted) {
+            if (exerciseType == ExerciseType.PLANK &&
+                targetHoldSeconds > 0 &&
+                result.holdDurationSeconds >= targetHoldSeconds
+            ) {
+                val completed = session.onHoldCompleted()
+                if (completed) {
+                    saveAndExit()
+                }
+                return
+            }
             saveAndExit()
             return
         }
@@ -278,6 +315,35 @@ fun WorkoutScreen(
             }
         }
 
+        if (workoutState is WorkoutState.Rest) {
+            val restState = workoutState as WorkoutState.Rest
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Rest",
+                        color = Color(0xFF00E5FF),
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${restState.secondsRemaining}s",
+                        color = Color.White,
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "Set ${restState.currentSet} of ${restState.totalSets} complete",
+                        color = Color(0xFFB0BEC5),
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+            }
+        }
+
         // ── Feedback banner ───────────────────────────────────────────────
         if (workoutState !is WorkoutState.Countdown) {
             Box(
@@ -293,13 +359,15 @@ fun WorkoutScreen(
                         is WorkoutState.Idle           -> "Tap Start when ready"
                         is WorkoutState.WaitingForPose -> s.hint
                         is WorkoutState.Paused         -> "Paused — tap Resume to continue"
+                        is WorkoutState.Rest           -> "Rest — next set in ${s.secondsRemaining}s"
                         else                           -> feedbackText
                     },
                     color = when (workoutState) {
                         is WorkoutState.Idle,
                         is WorkoutState.WaitingForPose,
-                        is WorkoutState.Paused -> Color(0xFFB0BEC5)
-                        else                   -> feedbackColor
+                        is WorkoutState.Paused,
+                        is WorkoutState.Rest -> Color(0xFFB0BEC5)
+                        else                 -> feedbackColor
                     },
                     fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold,
@@ -401,6 +469,15 @@ fun WorkoutScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(top = 4.dp)
+                    )
+                }
+
+                if (config.sets > 1) {
+                    Text(
+                        text = "Set $currentSetIndex of ${config.sets}",
+                        color = Color(0xFFB0BEC5),
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 2.dp)
                     )
                 }
             }

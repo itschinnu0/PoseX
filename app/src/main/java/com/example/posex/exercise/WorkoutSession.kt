@@ -20,6 +20,8 @@ import kotlinx.coroutines.launch
 class WorkoutSession(
     private val scope: CoroutineScope,
     private val targetReps: Int = 0,
+    private val totalSets: Int = 1,
+    private val restSeconds: Int = 60,
     private val onStateChanged: (WorkoutState) -> Unit
 ) {
     private var countdownJob: Job? = null
@@ -30,6 +32,7 @@ class WorkoutSession(
     private var activeStartTimeMs: Long = 0L
     private var criticalCueCount: Int = 0
     private var warningCueCount: Int = 0
+    private var currentSet: Int = 1
 
     // ── Public API ────────────────────────────────────────────────────────
 
@@ -78,6 +81,7 @@ class WorkoutSession(
     fun stop() {
         countdownJob?.cancel()
         PoseReadinessChecker.reset()
+        currentSet = 1
         transition(WorkoutState.Idle)
     }
 
@@ -85,10 +89,14 @@ class WorkoutSession(
         if (currentState !is WorkoutState.Active) return false
         transition(WorkoutState.Active(newRepCount))
         if (targetReps > 0 && newRepCount >= targetReps) {
-            transition(WorkoutState.Completed(newRepCount))
-            return true
+            return onSetCompleted(finalRepCount = newRepCount)
         }
         return false
+    }
+
+    fun onHoldCompleted(): Boolean {
+        if (currentState !is WorkoutState.Active) return false
+        return onSetCompleted(finalRepCount = 0)
     }
 
     fun recordCue(severity: FormCue.Severity) {
@@ -137,6 +145,38 @@ class WorkoutSession(
 
             transition(WorkoutState.Active(preservedReps))
         }
+    }
+
+    private fun beginRest() {
+        if (restSeconds <= 0) {
+            transition(WorkoutState.WaitingForPose("Get into position"))
+            return
+        }
+
+        countdownJob?.cancel()
+        transition(WorkoutState.Rest(restSeconds, currentSet, totalSets))
+
+        countdownJob = scope.launch {
+            for (secondsLeft in restSeconds - 1 downTo 1) {
+                delay(1000L)
+                if (currentState !is WorkoutState.Rest) return@launch
+                transition(WorkoutState.Rest(secondsLeft, currentSet, totalSets))
+            }
+            delay(1000L)
+            if (currentState !is WorkoutState.Rest) return@launch
+            currentSet += 1
+            PoseReadinessChecker.reset()
+            transition(WorkoutState.WaitingForPose("Get into position"))
+        }
+    }
+
+    private fun onSetCompleted(finalRepCount: Int): Boolean {
+        if (currentSet >= totalSets) {
+            transition(WorkoutState.Completed(finalRepCount))
+            return true
+        }
+        beginRest()
+        return false
     }
 
     private fun transition(newState: WorkoutState) {

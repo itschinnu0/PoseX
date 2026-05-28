@@ -10,10 +10,9 @@ package com.example.posex.exercise
  *   ACTIVE → PAUSED          (user taps Pause)
  *   PAUSED → WAITING_FOR_POSE (user taps Resume — re-checks pose before counting)
  *   ACTIVE → COMPLETED       (target reps reached, or user taps Stop while active)
+ *   ACTIVE → REST               (target reps/hold reached for a set)
+ *   REST → WAITING_FOR_POSE     (rest finishes)
  *   any → IDLE               (user taps Stop)
- *
- * REST is intentionally omitted until set-based targets are added to HomeScreen.
- * Insert it between ACTIVE → REST → WAITING_FOR_POSE when that work is done.
  */
 sealed class WorkoutState {
 
@@ -52,4 +51,14 @@ sealed class WorkoutState {
      * [finalRepCount] is the count to show on summary.
      */
     data class Completed(val finalRepCount: Int) : WorkoutState()
+
+    /**
+     * Between-set recovery. Countdown runs automatically.
+     * [secondsRemaining] shows rest countdown, [currentSet]/[totalSets] track progress.
+     */
+    data class Rest(
+        val secondsRemaining: Int,
+        val currentSet: Int,
+        val totalSets: Int
+    ) : WorkoutState()
 }
