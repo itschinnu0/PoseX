@@ -63,6 +63,7 @@ fun WorkoutConfigScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFF0A0F1E))
+            .statusBarsPadding()
     ) {
         Column(
             modifier = Modifier

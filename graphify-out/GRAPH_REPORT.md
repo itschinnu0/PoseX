@@ -1,11 +1,11 @@
 # Graph Report - C:\Users\Chinnu0\Desktop\PoseX  (2026-06-02)
 
 ## Corpus Check
-- 46 files · ~47,340 words
+- 47 files · ~47,839 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 243 nodes · 201 edges · 45 communities detected
+- 248 nodes · 205 edges · 46 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
@@ -55,6 +55,7 @@
 - [[_COMMUNITY_Community 42|Community 42]]
 - [[_COMMUNITY_Community 43|Community 43]]
 - [[_COMMUNITY_Community 44|Community 44]]
+- [[_COMMUNITY_Community 45|Community 45]]
 
 ## God Nodes (most connected - your core abstractions)
 1. `RepCounterTest` - 22 edges
@@ -65,8 +66,8 @@
 6. `CalibratingRepCounter` - 9 edges
 7. `PoseReadinessChecker` - 8 edges
 8. `WorkoutConfigValidator` - 5 edges
-9. `ActiveHoldTimer` - 4 edges
-10. `PlankAnalyzer` - 4 edges
+9. `PoseXSfxManager` - 4 edges
+10. `ActiveHoldTimer` - 4 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
@@ -127,63 +128,63 @@ Nodes (0):
 
 ### Community 13 - "Community 13"
 Cohesion: 0.4
-Nodes (1): ActiveHoldTimer
+Nodes (1): PoseXSfxManager
 
 ### Community 14 - "Community 14"
 Cohesion: 0.4
-Nodes (1): PlankAnalyzer
+Nodes (1): ActiveHoldTimer
 
 ### Community 15 - "Community 15"
 Cohesion: 0.4
-Nodes (1): PushupAnalyzer
+Nodes (1): PlankAnalyzer
 
 ### Community 16 - "Community 16"
 Cohesion: 0.4
-Nodes (1): SquatsAnalyzer
+Nodes (1): PushupAnalyzer
 
 ### Community 17 - "Community 17"
 Cohesion: 0.4
-Nodes (1): PushupAnalyzerTest
+Nodes (1): SquatsAnalyzer
 
 ### Community 18 - "Community 18"
-Cohesion: 0.5
-Nodes (1): PoseAnalyzer
+Cohesion: 0.4
+Nodes (1): PushupAnalyzerTest
 
 ### Community 19 - "Community 19"
 Cohesion: 0.5
-Nodes (0): 
+Nodes (1): PoseAnalyzer
 
 ### Community 20 - "Community 20"
 Cohesion: 0.5
 Nodes (0): 
 
 ### Community 21 - "Community 21"
-Cohesion: 0.67
-Nodes (1): ExampleInstrumentedTest
+Cohesion: 0.5
+Nodes (0): 
 
 ### Community 22 - "Community 22"
 Cohesion: 0.67
-Nodes (1): CuePrioritizer
+Nodes (1): ExampleInstrumentedTest
 
 ### Community 23 - "Community 23"
 Cohesion: 0.67
-Nodes (2): FormCue, Severity
+Nodes (1): CuePrioritizer
 
 ### Community 24 - "Community 24"
 Cohesion: 0.67
-Nodes (1): PoseUtils
+Nodes (2): FormCue, Severity
 
 ### Community 25 - "Community 25"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): PoseUtils
 
 ### Community 26 - "Community 26"
 Cohesion: 0.67
-Nodes (1): PhoneOrientation
+Nodes (0): 
 
 ### Community 27 - "Community 27"
 Cohesion: 0.67
-Nodes (0): 
+Nodes (1): PhoneOrientation
 
 ### Community 28 - "Community 28"
 Cohesion: 0.67
@@ -195,35 +196,35 @@ Nodes (0):
 
 ### Community 30 - "Community 30"
 Cohesion: 0.67
-Nodes (1): ExampleUnitTest
+Nodes (0): 
 
 ### Community 31 - "Community 31"
-Cohesion: 1.0
-Nodes (1): PersonalBest
+Cohesion: 0.67
+Nodes (1): ExampleUnitTest
 
 ### Community 32 - "Community 32"
 Cohesion: 1.0
-Nodes (1): SessionRecord
+Nodes (1): PersonalBest
 
 ### Community 33 - "Community 33"
 Cohesion: 1.0
-Nodes (1): UserProfile
+Nodes (1): SessionRecord
 
 ### Community 34 - "Community 34"
 Cohesion: 1.0
-Nodes (1): ExerciseAnalysisResult
+Nodes (1): UserProfile
 
 ### Community 35 - "Community 35"
 Cohesion: 1.0
-Nodes (1): ExerciseType
+Nodes (1): ExerciseAnalysisResult
 
 ### Community 36 - "Community 36"
 Cohesion: 1.0
-Nodes (1): WorkoutConfig
+Nodes (1): ExerciseType
 
 ### Community 37 - "Community 37"
 Cohesion: 1.0
-Nodes (0): 
+Nodes (1): WorkoutConfig
 
 ### Community 38 - "Community 38"
 Cohesion: 1.0
@@ -253,36 +254,40 @@ Nodes (0):
 Cohesion: 1.0
 Nodes (0): 
 
+### Community 45 - "Community 45"
+Cohesion: 1.0
+Nodes (0): 
+
 ## Knowledge Gaps
 - **28 isolated node(s):** `HomeFlow`, `AppDestination`, `Loading`, `CreateProfile`, `ConfirmProfile` (+23 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 31`** (2 nodes): `PersonalBest.kt`, `PersonalBest`
+- **Thin community `Community 32`** (2 nodes): `PersonalBest.kt`, `PersonalBest`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 32`** (2 nodes): `SessionRecord.kt`, `SessionRecord`
+- **Thin community `Community 33`** (2 nodes): `SessionRecord.kt`, `SessionRecord`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 33`** (2 nodes): `UserProfile.kt`, `UserProfile`
+- **Thin community `Community 34`** (2 nodes): `UserProfile.kt`, `UserProfile`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 34`** (2 nodes): `ExerciseAnalysisResult.kt`, `ExerciseAnalysisResult`
+- **Thin community `Community 35`** (2 nodes): `ExerciseAnalysisResult.kt`, `ExerciseAnalysisResult`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 35`** (2 nodes): `ExerciseType.kt`, `ExerciseType`
+- **Thin community `Community 36`** (2 nodes): `ExerciseType.kt`, `ExerciseType`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 36`** (2 nodes): `WorkoutConfig.kt`, `WorkoutConfig`
+- **Thin community `Community 37`** (2 nodes): `WorkoutConfig.kt`, `WorkoutConfig`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 37`** (2 nodes): `PoseOverlay.kt`, `PoseOverlay()`
+- **Thin community `Community 38`** (2 nodes): `PoseOverlay.kt`, `PoseOverlay()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 38`** (2 nodes): `WorkoutScreen.kt`, `WorkoutScreen()`
+- **Thin community `Community 39`** (2 nodes): `WorkoutScreen.kt`, `WorkoutScreen()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 39`** (2 nodes): `Theme.kt`, `PoseXTheme()`
+- **Thin community `Community 40`** (2 nodes): `Theme.kt`, `PoseXTheme()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 40`** (1 nodes): `build.gradle.kts`
+- **Thin community `Community 41`** (1 nodes): `build.gradle.kts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 41`** (1 nodes): `settings.gradle.kts`
+- **Thin community `Community 42`** (1 nodes): `settings.gradle.kts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 42`** (1 nodes): `build.gradle.kts`
+- **Thin community `Community 43`** (1 nodes): `build.gradle.kts`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 43`** (1 nodes): `Color.kt`
+- **Thin community `Community 44`** (1 nodes): `Color.kt`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 44`** (1 nodes): `Type.kt`
+- **Thin community `Community 45`** (1 nodes): `Type.kt`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions

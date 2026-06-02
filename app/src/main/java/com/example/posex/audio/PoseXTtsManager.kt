@@ -59,7 +59,10 @@ class PoseXTtsManager(context: Context) : TextToSpeech.OnInitListener {
 
     fun setWorkoutState(state: WorkoutState) {
         workoutState = state
-        if (state !is WorkoutState.Active) {
+        val shouldStop = state is WorkoutState.Paused ||
+                state is WorkoutState.Idle ||
+                state is WorkoutState.Completed
+        if (shouldStop) {
             tts?.stop()
             isSpeaking = false
         }

@@ -201,97 +201,119 @@ fun PoseXApp() {
     var editTarget by remember { mutableStateOf<UserProfile?>(null) }
     var returnToSettingsAfterCreate by remember { mutableStateOf(false) }
 
+    @Composable
+    fun InsetScreen(content: @Composable () -> Unit) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            content()
+        }
+    }
+
     when (appDestination) {
         is AppDestination.CreateProfile -> {
-            ProfileCreationScreen(
-                onProfileCreated = { profile ->
-                    profileStorageService.saveProfile(profile)
-                    profileStorageService.setActiveProfile(profile.id)
-                    profileStorageService.updateLastActive(profile.id)
-                    profiles = profileStorageService.getAllProfiles()
-                    activeProfile = profile
-                    appDestination = AppDestination.MainApp
-                    showSettings = returnToSettingsAfterCreate
-                    returnToSettingsAfterCreate = false
-                }
-            )
+            InsetScreen {
+                ProfileCreationScreen(
+                    onProfileCreated = { profile ->
+                        profileStorageService.saveProfile(profile)
+                        profileStorageService.setActiveProfile(profile.id)
+                        profileStorageService.updateLastActive(profile.id)
+                        profiles = profileStorageService.getAllProfiles()
+                        activeProfile = profile
+                        appDestination = AppDestination.MainApp
+                        showSettings = returnToSettingsAfterCreate
+                        returnToSettingsAfterCreate = false
+                    }
+                )
+            }
         }
         is AppDestination.ConfirmProfile -> {
             val profile = activeProfile
             if (profile == null) {
                 appDestination = AppDestination.CreateProfile
             } else {
-                ProfileConfirmationScreen(
-                    profile = profile,
-                    onContinue = {
+                InsetScreen {
+                    ProfileConfirmationScreen(
+                        profile = profile,
+                        onContinue = {
+                            profileStorageService.updateLastActive(profile.id)
+                            appDestination = AppDestination.MainApp
+                        },
+                        onSwitch = { appDestination = AppDestination.SelectProfile },
+                        onCreateNew = { appDestination = AppDestination.CreateProfile }
+                    )
+                }
+            }
+        }
+        is AppDestination.SelectProfile -> {
+            InsetScreen {
+                ProfileSelectionScreen(
+                    profiles = profiles,
+                    activeProfileId = activeProfile?.id,
+                    onProfileSelected = { profile ->
+                        profileStorageService.setActiveProfile(profile.id)
                         profileStorageService.updateLastActive(profile.id)
+                        activeProfile = profile
                         appDestination = AppDestination.MainApp
                     },
-                    onSwitch = { appDestination = AppDestination.SelectProfile },
                     onCreateNew = { appDestination = AppDestination.CreateProfile }
                 )
             }
         }
-        is AppDestination.SelectProfile -> {
-            ProfileSelectionScreen(
-                profiles = profiles,
-                activeProfileId = activeProfile?.id,
-                onProfileSelected = { profile ->
-                    profileStorageService.setActiveProfile(profile.id)
-                    profileStorageService.updateLastActive(profile.id)
-                    activeProfile = profile
-                    appDestination = AppDestination.MainApp
-                },
-                onCreateNew = { appDestination = AppDestination.CreateProfile }
-            )
-        }
         is AppDestination.MainApp -> {
             when {
                 editTarget != null -> {
-                    ProfileCreationScreen(
-                        existingProfile = editTarget,
-                        onProfileCreated = { profile ->
-                            profileStorageService.saveProfile(profile)
-                            profiles = profileStorageService.getAllProfiles()
-                            if (activeProfile?.id == profile.id) {
-                                activeProfile = profile
+                    InsetScreen {
+                        ProfileCreationScreen(
+                            existingProfile = editTarget,
+                            onProfileCreated = { profile ->
+                                profileStorageService.saveProfile(profile)
+                                profiles = profileStorageService.getAllProfiles()
+                                if (activeProfile?.id == profile.id) {
+                                    activeProfile = profile
+                                }
+                                editTarget = null
+                                showSettings = true
                             }
-                            editTarget = null
-                            showSettings = true
-                        }
-                    )
+                        )
+                    }
                 }
                 returnToSettingsAfterCreate -> {
-                    ProfileCreationScreen(
-                        onProfileCreated = { profile ->
-                            profileStorageService.saveProfile(profile)
-                            profileStorageService.setActiveProfile(profile.id)
-                            profileStorageService.updateLastActive(profile.id)
-                            profiles = profileStorageService.getAllProfiles()
-                            activeProfile = profile
-                            returnToSettingsAfterCreate = false
-                            showSettings = true
-                        }
-                    )
+                    InsetScreen {
+                        ProfileCreationScreen(
+                            onProfileCreated = { profile ->
+                                profileStorageService.saveProfile(profile)
+                                profileStorageService.setActiveProfile(profile.id)
+                                profileStorageService.updateLastActive(profile.id)
+                                profiles = profileStorageService.getAllProfiles()
+                                activeProfile = profile
+                                returnToSettingsAfterCreate = false
+                                showSettings = true
+                            }
+                        )
+                    }
                 }
                 showSettings -> {
-                    SettingsScreen(
-                        activeProfile = activeProfile,
-                        allProfiles = profiles,
-                        profileStorageService = profileStorageService,
-                        onProfileSwitched = { profile ->
-                            profileStorageService.setActiveProfile(profile.id)
-                            profileStorageService.updateLastActive(profile.id)
-                            activeProfile = profile
-                        },
-                        onEditProfile = { profile -> editTarget = profile },
-                        onCreateNewProfile = { returnToSettingsAfterCreate = true },
-                        onBack = {
-                            profiles = profileStorageService.getAllProfiles()
-                            activeProfile = profileStorageService.getActiveProfile()
-                            showSettings = false
-                        }
-                    )
+                    InsetScreen {
+                        SettingsScreen(
+                            activeProfile = activeProfile,
+                            allProfiles = profiles,
+                            profileStorageService = profileStorageService,
+                            onProfileSwitched = { profile ->
+                                profileStorageService.setActiveProfile(profile.id)
+                                profileStorageService.updateLastActive(profile.id)
+                                activeProfile = profile
+                            },
+                            onEditProfile = { profile -> editTarget = profile },
+                            onCreateNewProfile = { returnToSettingsAfterCreate = true },
+                            onBack = {
+                                profiles = profileStorageService.getAllProfiles()
+                                activeProfile = profileStorageService.getActiveProfile()
+                                showSettings = false
+                            }
+                        )
+                    }
                 }
                 else -> {
                     PoseXApp(

@@ -1,7 +1,9 @@
 package com.example.posex.ui.screens
 
 import android.Manifest
+import android.app.Activity
 import android.content.pm.PackageManager
+import android.view.WindowManager
 import androidx.compose.foundation.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -38,6 +40,7 @@ import com.example.posex.exercise.SquatsAnalyzer
 import com.example.posex.exercise.WorkoutConfig
 import com.example.posex.exercise.WorkoutSession
 import com.example.posex.exercise.WorkoutState
+import com.example.posex.audio.PoseXSfxManager
 import com.example.posex.audio.PoseXTtsManager
 import com.example.posex.ui.components.CameraPreview
 import com.example.posex.ui.components.PoseOverlay
@@ -89,6 +92,9 @@ fun WorkoutScreen(
     var lastState by remember { mutableStateOf<WorkoutState?>(null) }
     var lastTtsState by remember { mutableStateOf<WorkoutState?>(null) }
     var currentSetIndex by remember { mutableStateOf(1) }
+    var lastRepCount by remember { mutableStateOf(0) }
+    var lastTickPhase by remember { mutableStateOf<String?>(null) }
+    var lastTickSecond by remember { mutableStateOf<Int?>(null) }
 
     var currentPose by remember { mutableStateOf<Pose?>(null) }
     var frozenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
@@ -101,9 +107,11 @@ fun WorkoutScreen(
     var rejectionText by remember { mutableStateOf("") }
 
     val ttsManager = remember { PoseXTtsManager(context) }
+    val sfxManager = remember { PoseXSfxManager(context) }
     val storageService = remember { StorageService(context) }
     val sessionId = remember { UUID.randomUUID().toString() }
     val sessionStartDate = remember { System.currentTimeMillis() }
+    val activity = context as? Activity
 
     val warningFrameCounts = remember { mutableMapOf<String, Int>() }
     val warningFrameThreshold = 5
@@ -124,12 +132,35 @@ fun WorkoutScreen(
                 if (previousTtsState is WorkoutState.Rest && newState is WorkoutState.WaitingForPose) {
                     ttsManager.speakRestComplete()
                 }
+                when (newState) {
+                    is WorkoutState.Countdown -> {
+                        if (lastTickPhase != "countdown" || lastTickSecond != newState.secondsRemaining) {
+                            sfxManager.playTick()
+                            lastTickPhase = "countdown"
+                            lastTickSecond = newState.secondsRemaining
+                        }
+                    }
+                    is WorkoutState.Rest -> {
+                        if (lastTickPhase != "rest" || lastTickSecond != newState.secondsRemaining) {
+                            sfxManager.playTick()
+                            lastTickPhase = "rest"
+                            lastTickSecond = newState.secondsRemaining
+                        }
+                    }
+                    else -> {
+                        lastTickPhase = null
+                        lastTickSecond = null
+                    }
+                }
                 if (newState is WorkoutState.Countdown) {
                     ttsManager.speakCountdown(newState.secondsRemaining)
                 }
                 if (newState !is WorkoutState.Active) {
                     warningFrameCounts.clear()
                     rejectionText = ""
+                }
+                if (newState !is WorkoutState.Active && newState !is WorkoutState.Paused) {
+                    lastRepCount = 0
                 }
                 lastTtsState = newState
             }
@@ -138,6 +169,17 @@ fun WorkoutScreen(
 
     DisposableEffect(Unit) {
         onDispose { ttsManager.shutdown() }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose { sfxManager.release() }
+    }
+
+    DisposableEffect(activity) {
+        activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose {
+            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
     }
 
     fun resetAnalyzers() {
@@ -200,6 +242,11 @@ fun WorkoutScreen(
         }
 
         lastResult = result
+
+        if (exerciseType != ExerciseType.PLANK && result.repCount > lastRepCount) {
+            sfxManager.playRepIncrement()
+            lastRepCount = result.repCount
+        }
 
         if (result.exerciseCompleted) {
             if (exerciseType == ExerciseType.PLANK &&
@@ -338,6 +385,7 @@ fun WorkoutScreen(
                 context = context,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
+                    .statusBarsPadding()
                     .padding(top = 80.dp)
                     .padding(horizontal = 16.dp),
                 expectedOrientation = when (exerciseType) {
@@ -430,6 +478,7 @@ fun WorkoutScreen(
             onClick = { saveAndExit() },
             modifier = Modifier
                 .align(Alignment.TopStart)
+                .statusBarsPadding()
                 .padding(16.dp),
             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252)),
             shape = RoundedCornerShape(8.dp)
@@ -471,6 +520,7 @@ fun WorkoutScreen(
         Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                .statusBarsPadding()
                 .padding(top = 16.dp)
                 .background(Color(0xCC000000), shape = RoundedCornerShape(8.dp))
                 .padding(horizontal = 16.dp, vertical = 8.dp)

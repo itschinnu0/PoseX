@@ -35,6 +35,7 @@ fun HomeScreen(onExerciseSelected: (ExerciseType) -> Unit) {
                     colors = listOf(Color(0xFF0A0F1E), Color(0xFF0D1B2A))
                 )
             )
+            .statusBarsPadding()
     ) {
         Column(
             modifier = Modifier
