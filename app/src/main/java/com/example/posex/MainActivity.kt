@@ -43,13 +43,12 @@ private enum class HomeFlow {
     SUMMARY
 }
 
-private enum class ProfileFlow {
-    CONFIRM,
-    SELECT,
-    CREATE,
-    EDIT,
-    SETTINGS,
-    APP
+private sealed class AppDestination {
+    object Loading : AppDestination()
+    object CreateProfile : AppDestination()
+    object ConfirmProfile : AppDestination()
+    object SelectProfile : AppDestination()
+    object MainApp : AppDestination()
 }
 
 @Composable
@@ -190,103 +189,120 @@ fun PoseXApp() {
     val context = LocalContext.current
     val profileStorageService = remember(context) { ProfileStorageService(context) }
 
-    var profiles by remember { mutableStateOf(profileStorageService.getAllProfiles()) }
     var activeProfile by remember { mutableStateOf(profileStorageService.getActiveProfile()) }
-    var flow by remember {
-        mutableStateOf(
-            when {
-                profiles.isEmpty() -> ProfileFlow.CREATE
-                activeProfile != null -> ProfileFlow.CONFIRM
-                else -> ProfileFlow.SELECT
-            }
+    var profiles by remember { mutableStateOf(profileStorageService.getAllProfiles()) }
+    var appDestination by remember {
+        val initialProfile = profileStorageService.getActiveProfile()
+        mutableStateOf<AppDestination>(
+            if (initialProfile != null) AppDestination.ConfirmProfile else AppDestination.CreateProfile
         )
     }
+    var showSettings by remember { mutableStateOf(false) }
     var editTarget by remember { mutableStateOf<UserProfile?>(null) }
-    var returnAfterSave by remember { mutableStateOf(ProfileFlow.APP) }
+    var returnToSettingsAfterCreate by remember { mutableStateOf(false) }
 
-    when (flow) {
-        ProfileFlow.CONFIRM -> {
-            ProfileConfirmationScreen(
-                profile = activeProfile!!,
-                onContinue = { flow = ProfileFlow.APP },
-                onSwitch = { flow = ProfileFlow.SELECT },
-                onCreateNew = {
-                    returnAfterSave = ProfileFlow.APP
-                    flow = ProfileFlow.CREATE
+    when (appDestination) {
+        is AppDestination.CreateProfile -> {
+            ProfileCreationScreen(
+                onProfileCreated = { profile ->
+                    profileStorageService.saveProfile(profile)
+                    profileStorageService.setActiveProfile(profile.id)
+                    profileStorageService.updateLastActive(profile.id)
+                    profiles = profileStorageService.getAllProfiles()
+                    activeProfile = profile
+                    appDestination = AppDestination.MainApp
+                    showSettings = returnToSettingsAfterCreate
+                    returnToSettingsAfterCreate = false
                 }
             )
         }
-        ProfileFlow.SELECT -> {
+        is AppDestination.ConfirmProfile -> {
+            val profile = activeProfile
+            if (profile == null) {
+                appDestination = AppDestination.CreateProfile
+            } else {
+                ProfileConfirmationScreen(
+                    profile = profile,
+                    onContinue = {
+                        profileStorageService.updateLastActive(profile.id)
+                        appDestination = AppDestination.MainApp
+                    },
+                    onSwitch = { appDestination = AppDestination.SelectProfile },
+                    onCreateNew = { appDestination = AppDestination.CreateProfile }
+                )
+            }
+        }
+        is AppDestination.SelectProfile -> {
             ProfileSelectionScreen(
                 profiles = profiles,
                 activeProfileId = activeProfile?.id,
                 onProfileSelected = { profile ->
                     profileStorageService.setActiveProfile(profile.id)
+                    profileStorageService.updateLastActive(profile.id)
                     activeProfile = profile
-                    flow = ProfileFlow.APP
+                    appDestination = AppDestination.MainApp
                 },
-                onCreateNew = {
-                    returnAfterSave = ProfileFlow.APP
-                    flow = ProfileFlow.CREATE
-                }
+                onCreateNew = { appDestination = AppDestination.CreateProfile }
             )
         }
-        ProfileFlow.CREATE -> {
-            ProfileCreationScreen(
-                onProfileCreated = { profile ->
-                    profileStorageService.saveProfile(profile)
-                    profileStorageService.setActiveProfile(profile.id)
-                    profiles = profileStorageService.getAllProfiles()
-                    activeProfile = profile
-                    flow = returnAfterSave
-                }
-            )
-        }
-        ProfileFlow.EDIT -> {
-            val target = editTarget
-            if (target == null) {
-                flow = ProfileFlow.SETTINGS
-            } else {
-                ProfileCreationScreen(
-                    existingProfile = target,
-                    onProfileCreated = { profile ->
-                        profileStorageService.saveProfile(profile)
-                        profiles = profileStorageService.getAllProfiles()
-                        if (activeProfile?.id == profile.id) {
-                            activeProfile = profile
+        is AppDestination.MainApp -> {
+            when {
+                editTarget != null -> {
+                    ProfileCreationScreen(
+                        existingProfile = editTarget,
+                        onProfileCreated = { profile ->
+                            profileStorageService.saveProfile(profile)
+                            profiles = profileStorageService.getAllProfiles()
+                            if (activeProfile?.id == profile.id) {
+                                activeProfile = profile
+                            }
+                            editTarget = null
+                            showSettings = true
                         }
-                        flow = ProfileFlow.SETTINGS
-                    }
-                )
+                    )
+                }
+                returnToSettingsAfterCreate -> {
+                    ProfileCreationScreen(
+                        onProfileCreated = { profile ->
+                            profileStorageService.saveProfile(profile)
+                            profileStorageService.setActiveProfile(profile.id)
+                            profileStorageService.updateLastActive(profile.id)
+                            profiles = profileStorageService.getAllProfiles()
+                            activeProfile = profile
+                            returnToSettingsAfterCreate = false
+                            showSettings = true
+                        }
+                    )
+                }
+                showSettings -> {
+                    SettingsScreen(
+                        activeProfile = activeProfile,
+                        allProfiles = profiles,
+                        profileStorageService = profileStorageService,
+                        onProfileSwitched = { profile ->
+                            profileStorageService.setActiveProfile(profile.id)
+                            profileStorageService.updateLastActive(profile.id)
+                            activeProfile = profile
+                        },
+                        onEditProfile = { profile -> editTarget = profile },
+                        onCreateNewProfile = { returnToSettingsAfterCreate = true },
+                        onBack = {
+                            profiles = profileStorageService.getAllProfiles()
+                            activeProfile = profileStorageService.getActiveProfile()
+                            showSettings = false
+                        }
+                    )
+                }
+                else -> {
+                    PoseXApp(
+                        activeProfileId = activeProfile?.id,
+                        onSettingsTapped = { showSettings = true },
+                        onExitAppFlow = { }
+                    )
+                }
             }
         }
-        ProfileFlow.SETTINGS -> {
-            SettingsScreen(
-                activeProfile = activeProfile,
-                allProfiles = profiles,
-                profileStorageService = profileStorageService,
-                onProfileSwitched = { profile ->
-                    profileStorageService.setActiveProfile(profile.id)
-                    activeProfile = profile
-                },
-                onEditProfile = { profile ->
-                    editTarget = profile
-                    flow = ProfileFlow.EDIT
-                },
-                onCreateNewProfile = {
-                    returnAfterSave = ProfileFlow.SETTINGS
-                    flow = ProfileFlow.CREATE
-                },
-                onBack = { flow = ProfileFlow.APP }
-            )
-        }
-        ProfileFlow.APP -> {
-            PoseXApp(
-                activeProfileId = activeProfile?.id,
-                onSettingsTapped = { flow = ProfileFlow.SETTINGS },
-                onExitAppFlow = { }
-            )
-        }
+        is AppDestination.Loading -> Unit
     }
 }
 
