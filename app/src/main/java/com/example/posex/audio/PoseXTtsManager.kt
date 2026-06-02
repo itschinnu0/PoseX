@@ -93,8 +93,36 @@ class PoseXTtsManager(context: Context) : TextToSpeech.OnInitListener {
         tts?.speak(number.toString(), TextToSpeech.QUEUE_FLUSH, null, "posex_countdown")
     }
 
+    fun speakRestStart(seconds: Int) {
+        val safeSeconds = seconds.coerceAtLeast(1)
+        speakAnnouncement(
+            message = "Take rest for $safeSeconds seconds",
+            utteranceId = "posex_rest_start"
+        )
+    }
+
+    fun speakRestComplete() {
+        speakAnnouncement(
+            message = "Rest time is over. Get ready to continue.",
+            utteranceId = "posex_rest_end"
+        )
+    }
+
     fun shutdown() {
         tts?.stop()
         tts?.shutdown()
+    }
+
+    private fun speakAnnouncement(message: String, utteranceId: String) {
+        if (!isInitialized) return
+        val trimmed = message.trim()
+        if (trimmed.isEmpty()) return
+
+        val now = SystemClock.elapsedRealtime()
+        lastSpokenTimeAny = now
+        lastMessage = trimmed
+        lastMessageAtMs = now
+
+        tts?.speak(trimmed, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
     }
 }

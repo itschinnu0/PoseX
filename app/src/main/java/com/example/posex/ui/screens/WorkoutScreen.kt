@@ -2,6 +2,7 @@ package com.example.posex.ui.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import androidx.compose.foundation.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -13,7 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -83,9 +87,11 @@ fun WorkoutScreen(
     }
 
     var lastState by remember { mutableStateOf<WorkoutState?>(null) }
+    var lastTtsState by remember { mutableStateOf<WorkoutState?>(null) }
     var currentSetIndex by remember { mutableStateOf(1) }
 
     var currentPose by remember { mutableStateOf<Pose?>(null) }
+    var frozenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
     var feedbackText by remember { mutableStateOf("Get into position") }
     var feedbackColor by remember { mutableStateOf(Color(0xFFB0BEC5)) }
     var lastResult by remember { mutableStateOf<ExerciseAnalysisResult?>(null) }
@@ -109,8 +115,15 @@ fun WorkoutScreen(
             totalSets = config.sets,
             restSeconds = config.restSeconds,
             onStateChanged = { newState ->
+                val previousTtsState = lastTtsState
                 workoutState = newState
                 ttsManager.setWorkoutState(newState)
+                if (newState is WorkoutState.Rest && previousTtsState !is WorkoutState.Rest) {
+                    ttsManager.speakRestStart(newState.secondsRemaining)
+                }
+                if (previousTtsState is WorkoutState.Rest && newState is WorkoutState.WaitingForPose) {
+                    ttsManager.speakRestComplete()
+                }
                 if (newState is WorkoutState.Countdown) {
                     ttsManager.speakCountdown(newState.secondsRemaining)
                 }
@@ -118,6 +131,7 @@ fun WorkoutScreen(
                     warningFrameCounts.clear()
                     rejectionText = ""
                 }
+                lastTtsState = newState
             }
         )
     }
@@ -281,11 +295,15 @@ fun WorkoutScreen(
         return
     }
 
+    val isResting = workoutState is WorkoutState.Rest
+
     Box(modifier = Modifier.fillMaxSize()) {
 
         CameraPreview(
             modifier = Modifier.fillMaxSize(),
             lifecycleOwner = lifecycleOwner,
+            isActive = !isResting,
+            onSnapshotCaptured = { snapshot -> frozenPreview = snapshot },
             onPoseDetected = { pose, width, height ->
                 currentPose = pose
                 imageWidth = width
@@ -297,25 +315,38 @@ fun WorkoutScreen(
             }
         )
 
-        PoseOverlay(
-            pose = currentPose,
-            modifier = Modifier.fillMaxSize(),
-            imageWidth = imageWidth,
-            imageHeight = imageHeight
-        )
+        if (isResting && frozenPreview != null) {
+            Image(
+                bitmap = frozenPreview!!,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(18.dp)
+            )
+        } else {
+            PoseOverlay(
+                pose = currentPose,
+                modifier = Modifier.fillMaxSize(),
+                imageWidth = imageWidth,
+                imageHeight = imageHeight
+            )
+        }
 
-        PhoneTiltWarning(
-            context = context,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 80.dp)
-                .padding(horizontal = 16.dp),
-            expectedOrientation = when (exerciseType) {
-                ExerciseType.SQUAT  -> PhoneOrientation.PORTRAIT
-                ExerciseType.PUSHUP -> PhoneOrientation.LANDSCAPE
-                ExerciseType.PLANK  -> PhoneOrientation.LANDSCAPE
-            }
-        )
+        if (!isResting) {
+            PhoneTiltWarning(
+                context = context,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 80.dp)
+                    .padding(horizontal = 16.dp),
+                expectedOrientation = when (exerciseType) {
+                    ExerciseType.SQUAT  -> PhoneOrientation.PORTRAIT
+                    ExerciseType.PUSHUP -> PhoneOrientation.LANDSCAPE
+                    ExerciseType.PLANK  -> PhoneOrientation.LANDSCAPE
+                }
+            )
+        }
 
         // ── Countdown overlay ─────────────────────────────────────────────
         if (workoutState is WorkoutState.Countdown) {

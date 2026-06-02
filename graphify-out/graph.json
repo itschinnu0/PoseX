@@ -63,7 +63,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L1",
       "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_mainactivity_kt",
-      "community": 4,
+      "community": 5,
       "norm_label": "mainactivity.kt"
     },
     {
@@ -72,7 +72,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L39",
       "id": "mainactivity_homeflow",
-      "community": 4,
+      "community": 5,
       "norm_label": "homeflow"
     },
     {
@@ -81,7 +81,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L46",
       "id": "mainactivity_appdestination",
-      "community": 4,
+      "community": 5,
       "norm_label": "appdestination"
     },
     {
@@ -90,7 +90,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L47",
       "id": "mainactivity_loading",
-      "community": 4,
+      "community": 5,
       "norm_label": "loading"
     },
     {
@@ -99,7 +99,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L48",
       "id": "mainactivity_createprofile",
-      "community": 4,
+      "community": 5,
       "norm_label": "createprofile"
     },
     {
@@ -108,7 +108,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L49",
       "id": "mainactivity_confirmprofile",
-      "community": 4,
+      "community": 5,
       "norm_label": "confirmprofile"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L50",
       "id": "mainactivity_selectprofile",
-      "community": 4,
+      "community": 5,
       "norm_label": "selectprofile"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L51",
       "id": "mainactivity_mainapp",
-      "community": 4,
+      "community": 5,
       "norm_label": "mainapp"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L54",
       "id": "mainactivity_posexapp",
-      "community": 4,
+      "community": 5,
       "norm_label": "posexapp()"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L309",
       "id": "mainactivity_mainactivity",
-      "community": 4,
+      "community": 5,
       "norm_label": "mainactivity"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\MainActivity.kt",
       "source_location": "L310",
       "id": "mainactivity_mainactivity_oncreate",
-      "community": 4,
+      "community": 5,
       "norm_label": ".oncreate()"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
       "source_location": "L1",
       "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_audio_posexttsmanager_kt",
-      "community": 5,
+      "community": 2,
       "norm_label": "posexttsmanager.kt"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L10",
       "id": "posexttsmanager_posexttsmanager",
-      "community": 5,
+      "community": 2,
       "norm_label": "posexttsmanager"
     },
     {
@@ -180,7 +180,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L36",
       "id": "posexttsmanager_onstart",
-      "community": 5,
+      "community": 2,
       "norm_label": "onstart()"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L40",
       "id": "posexttsmanager_ondone",
-      "community": 5,
+      "community": 2,
       "norm_label": "ondone()"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L44",
       "id": "posexttsmanager_onerror",
-      "community": 5,
+      "community": 2,
       "norm_label": "onerror()"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
       "source_location": "L45",
       "id": "posexttsmanager_posexttsmanager_oninit",
-      "community": 5,
+      "community": 2,
       "norm_label": ".oninit()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L50",
       "id": "posexttsmanager_posexttsmanager_setworkoutstate",
-      "community": 5,
+      "community": 2,
       "norm_label": ".setworkoutstate()"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L58",
       "id": "posexttsmanager_posexttsmanager_speakcue",
-      "community": 5,
+      "community": 2,
       "norm_label": ".speakcue()"
     },
     {
@@ -234,8 +234,26 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L80",
       "id": "posexttsmanager_posexttsmanager_speakcountdown",
-      "community": 5,
+      "community": 2,
       "norm_label": ".speakcountdown()"
+    },
+    {
+      "label": ".speakRestStart()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
+      "source_location": "L96",
+      "id": "posexttsmanager_posexttsmanager_speakreststart",
+      "community": 2,
+      "norm_label": ".speakreststart()"
+    },
+    {
+      "label": ".speakRestComplete()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
+      "source_location": "L104",
+      "id": "posexttsmanager_posexttsmanager_speakrestcomplete",
+      "community": 2,
+      "norm_label": ".speakrestcomplete()"
     },
     {
       "label": ".shutdown()",
@@ -243,8 +261,17 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L85",
       "id": "posexttsmanager_posexttsmanager_shutdown",
-      "community": 5,
+      "community": 2,
       "norm_label": ".shutdown()"
+    },
+    {
+      "label": ".speakAnnouncement()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
+      "source_location": "L116",
+      "id": "posexttsmanager_posexttsmanager_speakannouncement",
+      "community": 2,
+      "norm_label": ".speakannouncement()"
     },
     {
       "label": "PersonalBest.kt",
@@ -387,7 +414,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L1",
       "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_data_storageservice_kt",
-      "community": 2,
+      "community": 3,
       "norm_label": "storageservice.kt"
     },
     {
@@ -396,7 +423,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L28",
       "id": "storageservice_storageservice",
-      "community": 2,
+      "community": 3,
       "norm_label": "storageservice"
     },
     {
@@ -405,7 +432,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L41",
       "id": "storageservice_storageservice_savesession",
-      "community": 2,
+      "community": 3,
       "norm_label": ".savesession()"
     },
     {
@@ -414,7 +441,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L50",
       "id": "storageservice_storageservice_getsessions",
-      "community": 2,
+      "community": 3,
       "norm_label": ".getsessions()"
     },
     {
@@ -423,7 +450,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L65",
       "id": "storageservice_storageservice_getallsessions",
-      "community": 2,
+      "community": 3,
       "norm_label": ".getallsessions()"
     },
     {
@@ -432,7 +459,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L77",
       "id": "storageservice_storageservice_getpersonalbest",
-      "community": 2,
+      "community": 3,
       "norm_label": ".getpersonalbest()"
     },
     {
@@ -441,7 +468,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L90",
       "id": "storageservice_storageservice_appendsession",
-      "community": 2,
+      "community": 3,
       "norm_label": ".appendsession()"
     },
     {
@@ -450,7 +477,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L102",
       "id": "storageservice_storageservice_updatepersonalbestifneeded",
-      "community": 2,
+      "community": 3,
       "norm_label": ".updatepersonalbestifneeded()"
     },
     {
@@ -459,7 +486,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L130",
       "id": "storageservice_storageservice_encodesession",
-      "community": 2,
+      "community": 3,
       "norm_label": ".encodesession()"
     },
     {
@@ -468,7 +495,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L142",
       "id": "storageservice_storageservice_encodepersonalbest",
-      "community": 2,
+      "community": 3,
       "norm_label": ".encodepersonalbest()"
     },
     {
@@ -477,7 +504,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L150",
       "id": "storageservice_storageservice_decodesession",
-      "community": 2,
+      "community": 3,
       "norm_label": ".decodesession()"
     },
     {
@@ -486,7 +513,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L169",
       "id": "storageservice_storageservice_decodepersonalbest",
-      "community": 2,
+      "community": 3,
       "norm_label": ".decodepersonalbest()"
     },
     {
@@ -495,7 +522,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L183",
       "id": "storageservice_storageservice_sessionkey",
-      "community": 2,
+      "community": 3,
       "norm_label": ".sessionkey()"
     },
     {
@@ -504,7 +531,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\data\\StorageService.kt",
       "source_location": "L184",
       "id": "storageservice_storageservice_pbkey",
-      "community": 2,
+      "community": 3,
       "norm_label": ".pbkey()"
     },
     {
@@ -576,7 +603,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L1",
       "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_exercise_calibratingrepcounter_kt",
-      "community": 3,
+      "community": 4,
       "norm_label": "calibratingrepcounter.kt"
     },
     {
@@ -585,7 +612,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L33",
       "id": "calibratingrepcounter_calibratingrepcounter",
-      "community": 3,
+      "community": 4,
       "norm_label": "calibratingrepcounter"
     },
     {
@@ -594,7 +621,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L50",
       "id": "calibratingrepcounter_phase",
-      "community": 3,
+      "community": 4,
       "norm_label": "phase"
     },
     {
@@ -603,7 +630,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L86",
       "id": "calibratingrepcounter_validationresult",
-      "community": 3,
+      "community": 4,
       "norm_label": "validationresult"
     },
     {
@@ -612,7 +639,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L97",
       "id": "calibratingrepcounter_calibratingrepcounter_updatereps",
-      "community": 3,
+      "community": 4,
       "norm_label": ".updatereps()"
     },
     {
@@ -621,7 +648,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L107",
       "id": "calibratingrepcounter_calibratingrepcounter_getrepcount",
-      "community": 3,
+      "community": 4,
       "norm_label": ".getrepcount()"
     },
     {
@@ -630,7 +657,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L108",
       "id": "calibratingrepcounter_calibratingrepcounter_iscalibrating",
-      "community": 3,
+      "community": 4,
       "norm_label": ".iscalibrating()"
     },
     {
@@ -639,7 +666,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L110",
       "id": "calibratingrepcounter_calibratingrepcounter_reset",
-      "community": 3,
+      "community": 4,
       "norm_label": ".reset()"
     },
     {
@@ -648,7 +675,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L126",
       "id": "calibratingrepcounter_calibratingrepcounter_abortcurrentrep",
-      "community": 3,
+      "community": 4,
       "norm_label": ".abortcurrentrep()"
     },
     {
@@ -657,7 +684,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L135",
       "id": "calibratingrepcounter_calibratingrepcounter_calibrate",
-      "community": 3,
+      "community": 4,
       "norm_label": ".calibrate()"
     },
     {
@@ -666,7 +693,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L175",
       "id": "calibratingrepcounter_calibratingrepcounter_countrep",
-      "community": 3,
+      "community": 4,
       "norm_label": ".countrep()"
     },
     {
@@ -675,7 +702,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\exercise\\CalibratingRepCounter.kt",
       "source_location": "L229",
       "id": "calibratingrepcounter_calibratingrepcounter_evaluaterep",
-      "community": 3,
+      "community": 4,
       "norm_label": ".evaluaterep()"
     },
     {
@@ -1359,7 +1386,7 @@
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L1",
       "id": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_feedback_posexttsmanager_kt",
-      "community": 5,
+      "community": 2,
       "norm_label": "posexttsmanager.kt"
     },
     {
@@ -1411,19 +1438,19 @@
       "label": "CameraPreview()",
       "file_type": "code",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
-      "source_location": "L19",
+      "source_location": "L27",
       "id": "camerapreview_camerapreview",
       "community": 25,
       "norm_label": "camerapreview()"
     },
     {
-      "label": "startCamera()",
+      "label": "bindCamera()",
       "file_type": "code",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
-      "source_location": "L47",
-      "id": "camerapreview_startcamera",
+      "source_location": "L86",
+      "id": "camerapreview_bindcamera",
       "community": 25,
-      "norm_label": "startcamera()"
+      "norm_label": "bindcamera()"
     },
     {
       "label": "PhoneTiltChecker.kt",
@@ -1843,7 +1870,7 @@
       "label": "WorkoutScreen()",
       "file_type": "code",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\WorkoutScreen.kt",
-      "source_location": "L45",
+      "source_location": "L49",
       "id": "workoutscreen_workoutscreen",
       "community": 38,
       "norm_label": "workoutscreen()"
@@ -2408,6 +2435,30 @@
     {
       "relation": "method",
       "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_src": "posexttsmanager_posexttsmanager",
+      "_tgt": "posexttsmanager_posexttsmanager_speakreststart",
+      "source": "posexttsmanager_posexttsmanager",
+      "target": "posexttsmanager_posexttsmanager_speakreststart",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
+      "source_location": "L104",
+      "weight": 1.0,
+      "_src": "posexttsmanager_posexttsmanager",
+      "_tgt": "posexttsmanager_posexttsmanager_speakrestcomplete",
+      "source": "posexttsmanager_posexttsmanager",
+      "target": "posexttsmanager_posexttsmanager_speakrestcomplete",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\feedback\\PoseXTtsManager.kt",
       "source_location": "L85",
       "weight": 1.0,
@@ -2415,6 +2466,18 @@
       "_tgt": "posexttsmanager_posexttsmanager_shutdown",
       "source": "posexttsmanager_posexttsmanager",
       "target": "posexttsmanager_posexttsmanager_shutdown",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\audio\\PoseXTtsManager.kt",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_src": "posexttsmanager_posexttsmanager",
+      "_tgt": "posexttsmanager_posexttsmanager_speakannouncement",
+      "source": "posexttsmanager_posexttsmanager",
+      "target": "posexttsmanager_posexttsmanager_speakannouncement",
       "confidence_score": 1.0
     },
     {
@@ -3741,7 +3804,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
-      "source_location": "L19",
+      "source_location": "L27",
       "weight": 1.0,
       "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
       "_tgt": "camerapreview_camerapreview",
@@ -3753,12 +3816,12 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\components\\CameraPreview.kt",
-      "source_location": "L47",
+      "source_location": "L86",
       "weight": 1.0,
       "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
-      "_tgt": "camerapreview_startcamera",
+      "_tgt": "camerapreview_bindcamera",
       "source": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_components_camerapreview_kt",
-      "target": "camerapreview_startcamera",
+      "target": "camerapreview_bindcamera",
       "confidence_score": 1.0
     },
     {
@@ -4185,7 +4248,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "C:\\Users\\Chinnu0\\Desktop\\PoseX\\app\\src\\main\\java\\com\\example\\posex\\ui\\screens\\WorkoutScreen.kt",
-      "source_location": "L45",
+      "source_location": "L49",
       "weight": 1.0,
       "_src": "c_users_chinnu0_desktop_posex_app_src_main_java_com_example_posex_ui_screens_workoutscreen_kt",
       "_tgt": "workoutscreen_workoutscreen",

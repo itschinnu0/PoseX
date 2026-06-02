@@ -1,11 +1,11 @@
 # Graph Report - C:\Users\Chinnu0\Desktop\PoseX  (2026-06-02)
 
 ## Corpus Check
-- 46 files · ~47,070 words
+- 46 files · ~47,340 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 240 nodes · 198 edges · 45 communities detected
+- 243 nodes · 201 edges · 45 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
@@ -60,10 +60,10 @@
 1. `RepCounterTest` - 22 edges
 2. `WorkoutSession` - 18 edges
 3. `StorageService` - 13 edges
-4. `ProfileStorageService` - 10 edges
-5. `CalibratingRepCounter` - 9 edges
-6. `PoseReadinessChecker` - 8 edges
-7. `PoseXTtsManager` - 7 edges
+4. `PoseXTtsManager` - 10 edges
+5. `ProfileStorageService` - 10 edges
+6. `CalibratingRepCounter` - 9 edges
+7. `PoseReadinessChecker` - 8 edges
 8. `WorkoutConfigValidator` - 5 edges
 9. `ActiveHoldTimer` - 4 edges
 10. `PlankAnalyzer` - 4 edges
@@ -82,20 +82,20 @@ Cohesion: 0.11
 Nodes (1): WorkoutSession
 
 ### Community 2 - "Community 2"
+Cohesion: 0.18
+Nodes (4): onDone(), onError(), onStart(), PoseXTtsManager
+
+### Community 3 - "Community 3"
 Cohesion: 0.14
 Nodes (1): StorageService
 
-### Community 3 - "Community 3"
+### Community 4 - "Community 4"
 Cohesion: 0.17
 Nodes (3): CalibratingRepCounter, Phase, ValidationResult
 
-### Community 4 - "Community 4"
+### Community 5 - "Community 5"
 Cohesion: 0.18
 Nodes (8): AppDestination, ConfirmProfile, CreateProfile, HomeFlow, Loading, MainActivity, MainApp, SelectProfile
-
-### Community 5 - "Community 5"
-Cohesion: 0.24
-Nodes (4): onDone(), onError(), onStart(), PoseXTtsManager
 
 ### Community 6 - "Community 6"
 Cohesion: 0.18
@@ -294,5 +294,5 @@ _Questions this graph is uniquely positioned to answer:_
   _Cohesion score 0.09 - nodes in this community are weakly interconnected._
 - **Should `Community 1` be split into smaller, more focused modules?**
   _Cohesion score 0.11 - nodes in this community are weakly interconnected._
-- **Should `Community 2` be split into smaller, more focused modules?**
+- **Should `Community 3` be split into smaller, more focused modules?**
   _Cohesion score 0.14 - nodes in this community are weakly interconnected._
