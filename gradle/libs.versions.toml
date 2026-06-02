@@ -7,8 +7,8 @@ espressoCore = "3.7.0"
 lifecycleRuntimeKtx = "2.10.0"
 activityCompose = "1.13.0"
 kotlin = "2.2.10"
-composeBom = "2025.04.00"
-cameraX = "1.4.2"
+composeBom = "2026.05.01"
+cameraX = "1.6.1"
 mlkitPose = "18.0.0-beta5"
 
 [libraries]
