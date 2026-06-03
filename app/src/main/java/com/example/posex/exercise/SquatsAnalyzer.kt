@@ -276,7 +276,7 @@ object SquatsAnalyzer {
         if (!hasValidBaseline) {
             return CalibratingRepCounter.ValidationResult(
                 passed = false,
-                reason = "Stand still at the top for a moment to calibrate posture"
+                reason = "Stand still at the top for a moment to calibrate form"
             )
         }
 

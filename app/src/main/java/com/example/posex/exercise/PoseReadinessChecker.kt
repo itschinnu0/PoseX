@@ -52,7 +52,7 @@ object PoseReadinessChecker {
         val confirmed = consecutiveReadyFrames >= REQUIRED_CONSECUTIVE_READY_FRAMES
         return ReadinessResult(
             isReady = confirmed,
-            hint = if (confirmed) "Great, get ready!" else result.hint
+            hint = if (confirmed) "Form verified. Get ready!" else result.hint
         )
     }
 
@@ -85,7 +85,7 @@ object PoseReadinessChecker {
                 isVisible(pose, PoseLandmark.RIGHT_ANKLE)
 
         if (leftReady || rightReady) {
-            return ReadinessResult(true, "Great, get ready!")
+            return ReadinessResult(true, "Form verified. Get ready!")
         }
 
         // Diagnose what's missing to give a useful hint
@@ -115,7 +115,7 @@ object PoseReadinessChecker {
                 isVisible(pose, PoseLandmark.LEFT_HIP) &&
                 isVisible(pose, PoseLandmark.RIGHT_HIP)
 
-        if (ready) return ReadinessResult(true, "Great, get ready!")
+        if (ready) return ReadinessResult(true, "Form verified. Get ready!")
 
         val shouldersVisible = isVisible(pose, PoseLandmark.LEFT_SHOULDER) &&
                 isVisible(pose, PoseLandmark.RIGHT_SHOULDER)
@@ -144,7 +144,7 @@ object PoseReadinessChecker {
                 isVisible(pose, PoseLandmark.RIGHT_ANKLE) &&
                 isVisible(pose, PoseLandmark.RIGHT_ELBOW)
 
-        if (leftReady || rightReady) return ReadinessResult(true, "Great, get ready!")
+        if (leftReady || rightReady) return ReadinessResult(true, "Form verified. Get ready!")
 
         val ankleVisible = isVisible(pose, PoseLandmark.LEFT_ANKLE) ||
                 isVisible(pose, PoseLandmark.RIGHT_ANKLE)
@@ -170,9 +170,9 @@ object PoseReadinessChecker {
                 isVisible(pose, PoseLandmark.RIGHT_HIP)
 
         return if (leftVisible || rightVisible) {
-            ReadinessResult(true, "Ready! Starting curls...")
+            ReadinessResult(true, "Form verified. Get ready!")
         } else {
-            ReadinessResult(false, "Show your full side profile (Shoulder to Hip)")
+            ReadinessResult(false, "Stand sideways so your full side profile is visible")
         }
     }
 

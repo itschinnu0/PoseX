@@ -167,7 +167,7 @@ object BicepsAnalyzer {
 
     private fun validateForm(): CalibratingRepCounter.ValidationResult {
         if (!hasValidBaseline) {
-            return CalibratingRepCounter.ValidationResult(false, "Hold arm straight down to calibrate")
+            return CalibratingRepCounter.ValidationResult(false, "Hold arm straight down to calibrate form")
         }
 
         val torsoH = standingTorsoHeight ?: 100f
