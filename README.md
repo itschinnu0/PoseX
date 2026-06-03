@@ -6,7 +6,7 @@
 
 ### 1. Real-Time Pose Analysis
 *   **Dynamic Skeleton Overlay**: Visualize your form with a real-time skeleton projected over your camera feed.
-*   **Multi-Exercise Support**: Specialized logic for **Squats**, **Push-ups**, and **Planks**.
+*   **Multi-Exercise Support**: Specialized logic for **Squats**, **Push-ups**, **Planks**, and **Bicep Curls**.
 *   **High Precision**: Monitors limb angles and joint alignment with a high-frequency analysis loop (~10fps).
 
 ### 2. Intelligent Form Feedback
@@ -31,7 +31,7 @@
 PoseX combines high-performance libraries with custom-built biomechanical logic to provide a seamless training experience.
 
 1.  **Vision Pipeline**: The app uses **CameraX** to stream live frames to the **ML Kit Pose Detection** engine.
-2.  **Biometric Analysis**: Custom algorithms calculate joint angles using vector dot products (e.g., knee angle for squats, torso alignment for planks).
+2.  **Biometric Analysis**: Custom algorithms calculate joint angles using vector dot products (e.g., knee angle for squats, torso alignment for planks, elbow flexion for curls).
 3.  **State Management**: A robust `WorkoutSession` state machine handles the transition from **Countdown** to **Active** and finally to **Summary**.
 4.  **Baseline Calibration**: The system "learns" your standing or starting position at the beginning of each session to ensure accurate depth and movement detection.
 
@@ -46,7 +46,7 @@ All AI processing happens **locally on your device**. Your camera feed is never 
 Unlike other apps that might overwhelm you with feedback, PoseX uses a **CuePrioritizer**. It filters and ranks information so you only hear the most important corrections at the right time.
 
 ### ✅ Accurate Calibration
-The "Calibrating Rep Counter" dynamically adjusts to your range of motion. Whether you have deep squats or are just starting out, the app adapts its "bottom" and "top" thresholds to match your current ability.
+The "Calibrating Rep Counter" dynamically adjusts to your range of motion. Whether you have deep squats or are performing a full bicep curl, the app adapts its "bottom" and "top" thresholds to match your current ability.
 
 ### ✅ Clean & Modern UI
 Designed with a sleek **Dark Theme** and high-contrast cyan accents, the UI is optimized for visibility even when your phone is propped up across the room.
