@@ -1,29 +1,19 @@
 package com.example.posex.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -31,12 +21,11 @@ import com.example.posex.data.PersonalBest
 import com.example.posex.data.SessionRecord
 import com.example.posex.data.StorageService
 import com.example.posex.exercise.ExerciseType
+import com.example.posex.ui.theme.*
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.Composable
+import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StatsScreen(
     storageService: StorageService,
@@ -48,6 +37,7 @@ fun StatsScreen(
             .sortedByDescending { it.date }
             .take(20)
     }
+    
     val personalBests = remember(activeProfileId) {
         mapOf(
             ExerciseType.SQUAT to storageService.getPersonalBest("SQUAT", activeProfileId),
@@ -57,115 +47,70 @@ fun StatsScreen(
         )
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A0F1E))
-            .statusBarsPadding()
-    ) {
+    Scaffold(
+        containerColor = PoseXBackground,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        "TRAINING HISTORY",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 2.sp
+                        )
+                    )
+                },
+                actions = {
+                    IconButton(onClick = onSettingsTapped) {
+                        Icon(Icons.Default.Settings, contentDescription = "Settings", tint = PoseXAccent)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = PoseXBackground, titleContentColor = Color.White)
+            )
+        }
+    ) { padding ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(padding)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 32.dp, top = 8.dp)
         ) {
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Stats",
-                        color = Color(0xFF00E5FF),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
-                    )
-                    IconButton(onClick = onSettingsTapped) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Settings",
-                            tint = Color.White
-                        )
-                    }
-                }
-            }
-
-            item {
-                Text(
-                    text = "Personal Bests",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                Text("PERSONAL BESTS", style = MaterialTheme.typography.labelMedium, color = PoseXAccent)
             }
 
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        PersonalBestCard(
-                            title = "SQUAT",
-                            value = personalBestValue(ExerciseType.SQUAT, personalBests[ExerciseType.SQUAT]),
-                            modifier = Modifier.weight(1f)
-                        )
-                        PersonalBestCard(
-                            title = "PUSHUP",
-                            value = personalBestValue(ExerciseType.PUSHUP, personalBests[ExerciseType.PUSHUP]),
-                            modifier = Modifier.weight(1f)
-                        )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PBestCard("SQUAT", personalBestValue(ExerciseType.SQUAT, personalBests[ExerciseType.SQUAT]), Modifier.weight(1f))
+                        PBestCard("PUSHUP", personalBestValue(ExerciseType.PUSHUP, personalBests[ExerciseType.PUSHUP]), Modifier.weight(1f))
                     }
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        PersonalBestCard(
-                            title = "PLANK",
-                            value = personalBestValue(ExerciseType.PLANK, personalBests[ExerciseType.PLANK]),
-                            modifier = Modifier.weight(1f)
-                        )
-                        PersonalBestCard(
-                            title = "CURL",
-                            value = personalBestValue(ExerciseType.BICEPS_CURL, personalBests[ExerciseType.BICEPS_CURL]),
-                            modifier = Modifier.weight(1f)
-                        )
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        PBestCard("PLANK", personalBestValue(ExerciseType.PLANK, personalBests[ExerciseType.PLANK]), Modifier.weight(1f))
+                        PBestCard("CURL", personalBestValue(ExerciseType.BICEPS_CURL, personalBests[ExerciseType.BICEPS_CURL]), Modifier.weight(1f))
                     }
                 }
             }
 
             item {
-                Text(
-                    text = "Recent Sessions",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text("RECENT SESSIONS", style = MaterialTheme.typography.labelMedium, color = PoseXAccent)
             }
 
             if (sessions.isEmpty()) {
                 item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 32.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No workouts yet. Start your first workout!",
-                            color = Color(0xFFB0BEC5),
-                            fontSize = 14.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
+                    Text(
+                        "NO WORKOUTS YET. TIME TO CRUSH IT!",
+                        color = PoseXOnSurface,
+                        modifier = Modifier.padding(top = 40.dp).fillMaxWidth(),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
                 }
             } else {
                 items(sessions) { session ->
-                    SessionRow(session)
+                    SessionCard(session)
                 }
             }
         }
@@ -173,109 +118,80 @@ fun StatsScreen(
 }
 
 @Composable
-private fun PersonalBestCard(
-    title: String,
-    value: String,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier
-            .height(80.dp)
-            .background(Color(0xFF112233), RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+fun PBestCard(title: String, value: String, modifier: Modifier) {
+    Surface(
+        color = PoseXSurface,
+        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.height(90.dp)
     ) {
-        Text(
-            text = title,
-            color = Color(0xFFB0BEC5),
-            fontSize = 12.sp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = value,
-            color = if (value == "—") Color(0xFFB0BEC5) else Color(0xFF00E5FF),
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(title, style = MaterialTheme.typography.labelSmall, color = PoseXOnSurface)
+            Text(
+                value,
+                style = MaterialTheme.typography.titleLarge.copy(
+                    fontWeight = FontWeight.Black,
+                    color = if (value == "—") PoseXOnSurface else PoseXAccent
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
 @Composable
-private fun SessionRow(session: SessionRecord) {
-    val exerciseName = session.exerciseType.uppercase(Locale.US)
-    val dateText = formatDate(session.date)
-    val scoreLabel = formScoreLabel(session)
-    val scoreColor = formScoreColor(scoreLabel)
-
-    val metricText = if (exerciseName == "PLANK") {
-        "${session.holdSeconds}s"
-    } else {
-        "${session.repCount} reps"
+fun SessionCard(session: SessionRecord) {
+    val score = formScoreLabel(session)
+    val scoreColor = when (score) {
+        "PERFECT", "EXCELLENT" -> PoseXSuccess
+        "STABLE" -> Color(0xFFFFB300)
+        else -> PoseXError
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF112233), RoundedCornerShape(12.dp))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        color = PoseXSurface,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = exerciseName,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-            Text(
-                text = dateText,
-                color = Color(0xFFB0BEC5),
-                fontSize = 12.sp
-            )
-        }
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(session.exerciseType.uppercase(), style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                Text(formatDate(session.date), style = MaterialTheme.typography.labelSmall, color = PoseXOnSurface)
+            }
 
-        Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = metricText,
-                color = Color(0xFF00E5FF),
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp
-            )
-            Text(
-                text = scoreLabel,
-                color = scoreColor,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 12.sp
-            )
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    if (session.exerciseType == "PLANK") "${session.holdSeconds}S" else "${session.repCount} REPS",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = PoseXAccent,
+                    fontWeight = FontWeight.Black
+                )
+                Text(score, color = scoreColor, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+            }
         }
     }
 }
 
 private fun personalBestValue(type: ExerciseType, best: PersonalBest?): String {
     return when (type) {
-        ExerciseType.PLANK -> best?.holdSeconds?.takeIf { it > 0 }?.let { "${it}s" }
-        ExerciseType.SQUAT, ExerciseType.PUSHUP, ExerciseType.BICEPS_CURL -> best?.repCount?.takeIf { it > 0 }?.toString()
+        ExerciseType.PLANK -> best?.holdSeconds?.takeIf { it > 0 }?.let { "${it}S" }
+        else -> best?.repCount?.takeIf { it > 0 }?.toString()
     } ?: "—"
 }
 
 private fun formScoreLabel(session: SessionRecord): String {
     return when {
-        session.criticalCues == 0 && session.warningCues == 0 -> "Perfect"
-        session.criticalCues == 0 -> "Good"
-        session.criticalCues <= 3 -> "Fair"
-        else -> "Needs Work"
-    }
-}
-
-private fun formScoreColor(label: String): Color {
-    return when (label) {
-        "Perfect", "Good" -> Color(0xFF00E676)
-        "Fair" -> Color(0xFFFFB300)
-        else -> Color(0xFFFF5252)
+        session.criticalCues == 0 && session.warningCues == 0 -> "PERFECT"
+        session.criticalCues == 0 -> "EXCELLENT"
+        session.criticalCues <= 3 -> "STABLE"
+        else -> "IMPROVE"
     }
 }
 

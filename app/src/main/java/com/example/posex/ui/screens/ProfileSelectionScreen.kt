@@ -1,27 +1,15 @@
 package com.example.posex.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,82 +19,61 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.posex.data.UserProfile
+import com.example.posex.ui.theme.*
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun ProfileSelectionScreen(
     profiles: List<UserProfile>,
     activeProfileId: String?,
     onProfileSelected: (UserProfile) -> Unit,
-    onCreateNew: () -> Unit
+    onAddNew: () -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A0F1E))
-            .statusBarsPadding()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-        ) {
-            Text(
-                text = "Select Profile",
-                color = Color(0xFF00E5FF),
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            if (profiles.isEmpty()) {
-                Box(
+    Scaffold(
+        containerColor = PoseXBackground,
+        topBar = {
+            Surface(color = PoseXBackground) {
+                Text(
+                    "SELECT PROFILE",
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No profiles found",
-                        color = Color(0xFFB0BEC5),
-                        fontSize = 14.sp,
+                        .statusBarsPadding()
+                        .padding(24.dp),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        color = PoseXAccent,
+                        letterSpacing = 2.sp,
                         textAlign = TextAlign.Center
                     )
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(profiles) { profile ->
-                        ProfileCard(
-                            profile = profile,
-                            isActive = profile.id == activeProfileId,
-                            onClick = { onProfileSelected(profile) }
-                        )
-                    }
-                }
+                )
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Button(
-                onClick = onCreateNew,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
-                shape = RoundedCornerShape(10.dp)
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onAddNew,
+                containerColor = PoseXAccent,
+                contentColor = PoseXBackground,
+                shape = CircleShape
             ) {
-                Text(
-                    text = "Create New Profile",
-                    color = Color(0xFF0A0F1E),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                Icon(Icons.Default.Add, contentDescription = "Add")
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 100.dp, top = 8.dp)
+        ) {
+            items(profiles) { profile ->
+                ProfileSelectionCard(
+                    profile = profile,
+                    isActive = profile.id == activeProfileId,
+                    onClick = { onProfileSelected(profile) }
                 )
             }
         }
@@ -114,77 +81,54 @@ fun ProfileSelectionScreen(
 }
 
 @Composable
-private fun ProfileCard(
-    profile: UserProfile,
-    isActive: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
+fun ProfileSelectionCard(profile: UserProfile, isActive: Boolean, onClick: () -> Unit) {
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF112233), RoundedCornerShape(16.dp))
-            .clickable { onClick() }
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        color = if (isActive) PoseXAccent.copy(alpha = 0.1f) else PoseXSurface,
+        border = if (isActive) androidx.compose.foundation.BorderStroke(2.dp, PoseXAccent) else null
     ) {
-        Box(
-            modifier = Modifier
-                .size(48.dp)
-                .clip(CircleShape)
-                .background(Color(0xFF112233))
-                .border(1.dp, Color(0xFF1B2B40), CircleShape)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            if (!profile.avatarUri.isNullOrBlank()) {
-                AsyncImage(
-                    model = profile.avatarUri,
-                    contentDescription = "Profile avatar",
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
+            Surface(
+                modifier = Modifier.size(56.dp),
+                shape = CircleShape,
+                color = if (isActive) PoseXAccent else PoseXBackground
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        initialsForName(profile.name),
+                        color = if (isActive) PoseXBackground else PoseXAccent,
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Black)
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column {
                 Text(
-                    text = initialsForName(profile.name),
-                    color = Color(0xFF00E5FF),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.align(Alignment.Center)
+                    profile.name.uppercase(),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold, color = Color.White)
+                )
+                Text(
+                    "LINKED: ${SimpleDateFormat("dd MMM yyyy", Locale.US).format(Date(profile.createdAt))}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = PoseXOnSurface
                 )
             }
-        }
-
-        Spacer(modifier = Modifier.size(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = profile.name,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Text(
-                text = "${profile.age} · ${profile.gender}",
-                color = Color(0xFFB0BEC5),
-                fontSize = 13.sp
-            )
-        }
-
-        if (isActive) {
-            Text(
-                text = "✓",
-                color = Color(0xFF00E5FF),
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
         }
     }
 }
 
 private fun initialsForName(name: String): String {
-    val parts = name.trim().split(" ").filter { it.isNotBlank() }
-    if (parts.isEmpty()) return "--"
-    if (parts.size == 1) {
-        val word = parts.first().uppercase()
-        return word.take(2)
-    }
-    return (parts.first().take(1) + parts.last().take(1)).uppercase()
+    return name.split(" ")
+        .filter { it.isNotEmpty() }
+        .take(2)
+        .map { it[0].uppercase() }
+        .joinToString("")
 }
-

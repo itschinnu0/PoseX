@@ -4,22 +4,22 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.view.WindowManager
-import androidx.compose.foundation.Image
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
@@ -27,26 +27,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.example.posex.data.SessionRecord
-import com.example.posex.data.StorageService
-import com.example.posex.exercise.BicepsAnalyzer
-import com.example.posex.exercise.CuePrioritizer
-import com.example.posex.exercise.ExerciseAnalysisResult
-import com.example.posex.exercise.ExerciseType
-import com.example.posex.exercise.FormCue
-import com.example.posex.exercise.PlankAnalyzer
-import com.example.posex.exercise.PoseReadinessChecker
-import com.example.posex.exercise.PushupAnalyzer
-import com.example.posex.exercise.SquatsAnalyzer
-import com.example.posex.exercise.WorkoutConfig
-import com.example.posex.exercise.WorkoutSession
-import com.example.posex.exercise.WorkoutState
 import com.example.posex.audio.PoseXSfxManager
 import com.example.posex.audio.PoseXTtsManager
+import com.example.posex.data.SessionRecord
+import com.example.posex.data.StorageService
+import com.example.posex.exercise.*
 import com.example.posex.ui.components.CameraPreview
-import com.example.posex.ui.components.PoseOverlay
 import com.example.posex.ui.components.PhoneOrientation
 import com.example.posex.ui.components.PhoneTiltWarning
+import com.example.posex.ui.components.PoseOverlay
+import com.example.posex.ui.theme.*
 import com.google.mlkit.vision.pose.Pose
 import java.util.UUID
 
@@ -61,15 +51,12 @@ fun WorkoutScreen(
     val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
 
-    var imageWidth by remember { mutableStateOf(480) }
-    var imageHeight by remember { mutableStateOf(640) }
+    var imageWidth by remember { mutableIntStateOf(480) }
+    var imageHeight by remember { mutableIntStateOf(640) }
 
     var hasCameraPermission by remember {
         mutableStateOf(
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         )
     }
 
@@ -84,28 +71,17 @@ fun WorkoutScreen(
         }
     }
 
-    val targetHoldSeconds = if (exerciseType == ExerciseType.PLANK) {
-        config.holdSeconds
-    } else {
-        0
-    }
+    val targetHoldSeconds = if (exerciseType == ExerciseType.PLANK) config.holdSeconds else 0
 
     var lastState by remember { mutableStateOf<WorkoutState?>(null) }
-    var lastTtsState by remember { mutableStateOf<WorkoutState?>(null) }
-    var currentSetIndex by remember { mutableStateOf(1) }
-    var lastRepCount by remember { mutableStateOf(0) }
-    var lastTickPhase by remember { mutableStateOf<String?>(null) }
-    var lastTickSecond by remember { mutableStateOf<Int?>(null) }
-
+    var currentSetIndex by remember { mutableIntStateOf(1) }
+    var lastRepCount by remember { mutableIntStateOf(0) }
+    
     var currentPose by remember { mutableStateOf<Pose?>(null) }
-    var frozenPreview by remember { mutableStateOf<ImageBitmap?>(null) }
-    var feedbackText by remember { mutableStateOf("Get into position") }
-    var feedbackColor by remember { mutableStateOf(Color(0xFFB0BEC5)) }
+    var feedbackText by remember { mutableStateOf("GET INTO POSITION") }
+    var feedbackColor by remember { mutableStateOf(PoseXOnSurface) }
     var lastResult by remember { mutableStateOf<ExerciseAnalysisResult?>(null) }
     var workoutState by remember { mutableStateOf<WorkoutState>(WorkoutState.Idle) }
-
-    // Shown briefly after a rep is rejected — cleared on next successful rep
-    var rejectionText by remember { mutableStateOf("") }
 
     val ttsManager = remember { PoseXTtsManager(context) }
     val sfxManager = remember { PoseXSfxManager(context) }
@@ -124,84 +100,42 @@ fun WorkoutScreen(
             totalSets = config.sets,
             restSeconds = config.restSeconds,
             onStateChanged = { newState ->
-                val previousTtsState = lastTtsState
+                val prev = workoutState
                 workoutState = newState
                 ttsManager.setWorkoutState(newState)
-                if (newState is WorkoutState.Rest && previousTtsState !is WorkoutState.Rest) {
+
+                if (newState is WorkoutState.Rest && prev !is WorkoutState.Rest) {
                     ttsManager.speakRestStart(newState.secondsRemaining)
                 }
-                if (previousTtsState is WorkoutState.Rest && newState is WorkoutState.WaitingForPose) {
+                if (prev is WorkoutState.Rest && newState is WorkoutState.WaitingForPose) {
                     ttsManager.speakRestComplete()
                 }
+
                 when (newState) {
-                    is WorkoutState.Countdown -> {
-                        if (lastTickPhase != "countdown" || lastTickSecond != newState.secondsRemaining) {
-                            sfxManager.playTick()
-                            lastTickPhase = "countdown"
-                            lastTickSecond = newState.secondsRemaining
-                        }
-                    }
-                    is WorkoutState.Rest -> {
-                        if (lastTickPhase != "rest" || lastTickSecond != newState.secondsRemaining) {
-                            sfxManager.playTick()
-                            lastTickPhase = "rest"
-                            lastTickSecond = newState.secondsRemaining
-                        }
-                    }
-                    else -> {
-                        lastTickPhase = null
-                        lastTickSecond = null
-                    }
+                    is WorkoutState.Countdown, is WorkoutState.Rest -> sfxManager.playTick()
+                    else -> Unit
                 }
-                if (newState is WorkoutState.Countdown) {
-                    ttsManager.speakCountdown(newState.secondsRemaining)
+
+                if (newState is WorkoutState.Rest) {
+                    currentSetIndex = newState.currentSet
                 }
-                if (newState !is WorkoutState.Active) {
-                    warningFrameCounts.clear()
-                    rejectionText = ""
-                    sfxManager.stopTimerLoop()
-                }
-                if (newState !is WorkoutState.Active && newState !is WorkoutState.Paused) {
-                    lastRepCount = 0
-                }
-                lastTtsState = newState
+
+                if (newState is WorkoutState.Countdown) ttsManager.speakCountdown(newState.secondsRemaining)
+                if (newState !is WorkoutState.Active) sfxManager.stopTimerLoop()
             }
         )
     }
 
     DisposableEffect(Unit) {
-        onDispose { ttsManager.shutdown() }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose { sfxManager.release() }
+        onDispose {
+            ttsManager.shutdown()
+            sfxManager.release()
+        }
     }
 
     DisposableEffect(activity) {
         activity?.window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
-
-    fun resetAnalyzers() {
-        when (exerciseType) {
-            ExerciseType.SQUAT  -> SquatsAnalyzer.resetRepCounter()
-            ExerciseType.PUSHUP -> PushupAnalyzer.resetRepCounter()
-            ExerciseType.PLANK  -> PlankAnalyzer.resetRepCounter()
-            ExerciseType.BICEPS_CURL -> BicepsAnalyzer.resetRepCounter()
-        }
-    }
-
-    LaunchedEffect(workoutState) {
-        val previousState = lastState
-        if (workoutState is WorkoutState.Rest) {
-            resetAnalyzers()
-            currentSetIndex = (workoutState as WorkoutState.Rest).currentSet
-        } else if (workoutState is WorkoutState.WaitingForPose && previousState is WorkoutState.Rest) {
-            currentSetIndex = previousState.currentSet + 1
-        }
-        lastState = workoutState
+        onDispose { activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) }
     }
 
     fun saveAndExit() {
@@ -209,25 +143,27 @@ fun WorkoutScreen(
         if (durationMs > 0L) {
             storageService.saveSession(
                 SessionRecord(
-                    id           = sessionId,
+                    id = sessionId,
                     exerciseType = exerciseType.name,
-                    date         = sessionStartDate,
-                    repCount     = lastResult?.repCount ?: 0,
-                    holdSeconds  = lastResult?.holdDurationSeconds ?: 0,
-                    durationMs   = durationMs,
+                    date = sessionStartDate,
+                    repCount = lastResult?.repCount ?: 0,
+                    holdSeconds = lastResult?.holdDurationSeconds ?: 0,
+                    durationMs = durationMs,
                     criticalCues = session.getCriticalCueCount(),
-                    warningCues  = session.getWarningCueCount(),
-                    profileId    = activeProfileId ?: ""
+                    warningCues = session.getWarningCueCount(),
+                    profileId = activeProfileId ?: ""
                 )
             )
         }
-        resetAnalyzers()
+        SquatsAnalyzer.resetRepCounter()
+        PushupAnalyzer.resetRepCounter()
+        PlankAnalyzer.resetRepCounter()
+        BicepsAnalyzer.resetRepCounter()
         session.stop()
         onExit(sessionId)
     }
 
     fun handlePoseFrame(pose: Pose) {
-        // ── WaitingForPose ────────────────────────────────────────────────
         if (session.isWaitingForPose()) {
             val readiness = PoseReadinessChecker.check(pose, exerciseType)
             session.updatePoseHint(readiness.hint)
@@ -237,362 +173,316 @@ fun WorkoutScreen(
 
         if (!session.isActive()) return
 
-        // ── Active ────────────────────────────────────────────────────────
         val result = when (exerciseType) {
-            ExerciseType.SQUAT  -> SquatsAnalyzer.analyze(pose)
+            ExerciseType.SQUAT -> SquatsAnalyzer.analyze(pose)
             ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
-            ExerciseType.PLANK  -> PlankAnalyzer.analyze(pose)
+            ExerciseType.PLANK -> PlankAnalyzer.analyze(pose)
             ExerciseType.BICEPS_CURL -> BicepsAnalyzer.analyze(pose)
         }
-
         lastResult = result
 
-        if (exerciseType != ExerciseType.PLANK && result.repCount > lastRepCount) {
+        if (exerciseType == ExerciseType.PLANK) {
+            if (result.isTimerRunning) sfxManager.startTimerLoop() else sfxManager.stopTimerLoop()
+        } else if (result.repCount > lastRepCount) {
             sfxManager.playRepIncrement()
             lastRepCount = result.repCount
         }
 
-        if (exerciseType == ExerciseType.PLANK) {
-            if (result.isTimerRunning) {
-                sfxManager.startTimerLoop()
-            } else {
-                sfxManager.stopTimerLoop()
-            }
-        }
-
         if (result.exerciseCompleted) {
-            if (exerciseType == ExerciseType.PLANK &&
-                targetHoldSeconds > 0 &&
-                result.holdDurationSeconds >= targetHoldSeconds
-            ) {
-                val completed = session.onHoldCompleted()
-                if (completed) {
-                    saveAndExit()
-                }
+            if (exerciseType == ExerciseType.PLANK && targetHoldSeconds > 0 && result.holdDurationSeconds >= targetHoldSeconds) {
+                if (session.onHoldCompleted()) saveAndExit()
                 return
             }
             saveAndExit()
             return
         }
 
-        // ── Rep rejected — show rejection reason, speak it, skip normal feedback
         if (result.repRejected) {
-            rejectionText = result.rejectionReason
-            feedbackText = result.rejectionReason
-            feedbackColor = Color(0xFFFF5252)
+            feedbackText = result.rejectionReason.uppercase()
+            feedbackColor = PoseXError
             ttsManager.speakCue(result.rejectionReason)
             session.onRepUpdated(result.repCount)
             return
         }
 
-        // ── Calibration hint — override feedback during first rep ─────────
         if (result.isCalibrating) {
-            val calibrationHint = when (exerciseType) {
-                ExerciseType.SQUAT  -> "Do one full squat to calibrate"
-                ExerciseType.PUSHUP -> "Do one full push-up to calibrate"
-                ExerciseType.BICEPS_CURL -> "Do one full curl to calibrate"
-                ExerciseType.PLANK  -> ""
-            }
-            if (calibrationHint.isNotEmpty()) {
-                feedbackText = calibrationHint
-                feedbackColor = Color(0xFFB0BEC5)
-                // Don't speak calibration hint — it would be too noisy
-                session.onRepUpdated(result.repCount)
-                return
-            }
+            feedbackText = "CALIBRATING FORM..."
+            feedbackColor = PoseXAccent
+            session.onRepUpdated(result.repCount)
+            return
         }
 
-        // ── Normal feedback path ──────────────────────────────────────────
-        rejectionText = "" // clear any previous rejection on a clean frame
+        val topCue = CuePrioritizer.topCue(result.cues)
+        if (topCue != null) {
+            feedbackText = topCue.message.uppercase()
+            feedbackColor = when (topCue.severity) {
+                FormCue.Severity.CRITICAL -> PoseXError
+                FormCue.Severity.WARNING -> Color(0xFFFFB300)
+                FormCue.Severity.SUCCESS -> PoseXSuccess
+                else -> PoseXOnSurface
+            }
 
-        val topCue = CuePrioritizer.topCue(result.cues) ?: return
-
-        feedbackText = topCue.message
-        feedbackColor = when (topCue.severity) {
-            FormCue.Severity.CRITICAL -> Color(0xFFFF5252)
-            FormCue.Severity.WARNING  -> Color(0xFFFFB300)
-            FormCue.Severity.INFO     -> Color(0xFFB0BEC5)
-            FormCue.Severity.SUCCESS  -> Color(0xFF00E676)
-        }
-
-        when (topCue.severity) {
-            FormCue.Severity.CRITICAL -> {
-                warningFrameCounts.clear()
+            if (topCue.severity == FormCue.Severity.CRITICAL) {
                 session.recordCue(topCue.severity)
                 ttsManager.speakCue(topCue.message)
-            }
-            FormCue.Severity.WARNING -> {
-                val currentCount = (warningFrameCounts[topCue.message] ?: 0) + 1
-                warningFrameCounts.clear()
-                warningFrameCounts[topCue.message] = currentCount
-                if (currentCount >= warningFrameThreshold) {
+            } else if (topCue.severity == FormCue.Severity.WARNING) {
+                val count = (warningFrameCounts[topCue.message] ?: 0) + 1
+                if (count >= warningFrameThreshold) {
                     session.recordCue(topCue.severity)
                     ttsManager.speakCue(topCue.message)
                     warningFrameCounts[topCue.message] = 0
+                } else {
+                    warningFrameCounts[topCue.message] = count
                 }
             }
-            else -> warningFrameCounts.clear()
-        }
-
-        val completed = session.onRepUpdated(result.repCount)
-        if (completed) saveAndExit()
-    }
-
-    if (!hasCameraPermission) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF0A0F1E)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Camera permission is required for PoseX to work.",
-                color = Color.White,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(24.dp)
-            )
-        }
-        return
-    }
-
-    val isResting = workoutState is WorkoutState.Rest
-
-    Box(modifier = Modifier.fillMaxSize()) {
-
-        CameraPreview(
-            modifier = Modifier.fillMaxSize(),
-            lifecycleOwner = lifecycleOwner,
-            isActive = !isResting,
-            onSnapshotCaptured = { snapshot -> frozenPreview = snapshot },
-            onPoseDetected = { pose, width, height ->
-                currentPose = pose
-                imageWidth = width
-                imageHeight = height
-                handlePoseFrame(pose)
-            },
-            onError = { error ->
-                feedbackText = "Camera error: ${error.message}"
-            }
-        )
-
-        if (isResting && frozenPreview != null) {
-            Image(
-                bitmap = frozenPreview!!,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(18.dp)
-            )
         } else {
+            feedbackText = "PERFECT FORM"
+            feedbackColor = PoseXSuccess
+        }
+
+        if (session.onRepUpdated(result.repCount)) saveAndExit()
+    }
+
+    Scaffold(
+        containerColor = Color.Black // Deepest black for contrast
+    ) { padding ->
+        Box(modifier = Modifier.fillMaxSize()) {
+            // Camera Layer
+            CameraPreview(
+                modifier = Modifier.fillMaxSize(),
+                lifecycleOwner = lifecycleOwner,
+                isActive = workoutState !is WorkoutState.Rest,
+                onPoseDetected = { pose, w, h ->
+                    currentPose = pose
+                    imageWidth = w
+                    imageHeight = h
+                    handlePoseFrame(pose)
+                },
+                onSnapshotCaptured = {},
+                onError = {}
+            )
+
+            // Tech Overlay Layer
             PoseOverlay(
                 pose = currentPose,
                 modifier = Modifier.fillMaxSize(),
                 imageWidth = imageWidth,
                 imageHeight = imageHeight
             )
-        }
 
-        if (!isResting) {
+            // UI Layer
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+            ) {
+                // Top Stats Bar
+                WorkoutTopBar(
+                    exerciseName = exerciseType.name,
+                    reps = if (exerciseType == ExerciseType.PLANK) 0 else lastRepCount,
+                    holdSeconds = if (exerciseType == ExerciseType.PLANK) lastResult?.holdDurationSeconds ?: 0 else 0,
+                    isPlank = exerciseType == ExerciseType.PLANK,
+                    isCalibrating = lastResult?.isCalibrating == true,
+                    onClose = { saveAndExit() }
+                )
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                // Real-time Feedback Banner
+                AnimatedVisibility(
+                    visible = workoutState is WorkoutState.Active || workoutState is WorkoutState.WaitingForPose,
+                    enter = slideInVertically { it } + fadeIn(),
+                    exit = slideOutVertically { it } + fadeOut()
+                ) {
+                    FeedbackBanner(text = feedbackText, color = feedbackColor)
+                }
+
+                // Controls
+                WorkoutControls(
+                    state = workoutState,
+                    onAction = {
+                        if (workoutState is WorkoutState.Active) session.pause() else session.start()
+                    }
+                )
+            }
+
+            // High-Alert Overlays
+            if (workoutState is WorkoutState.Countdown) {
+                CountdownOverlay(seconds = (workoutState as WorkoutState.Countdown).secondsRemaining)
+            }
+
+            if (workoutState is WorkoutState.Rest) {
+                RestOverlay(
+                    seconds = (workoutState as WorkoutState.Rest).secondsRemaining,
+                    setInfo = "SET ${currentSetIndex} COMPLETE"
+                )
+            }
+
             PhoneTiltWarning(
                 context = context,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .statusBarsPadding()
-                    .padding(top = 80.dp)
-                    .padding(horizontal = 16.dp),
+                modifier = Modifier.align(Alignment.Center),
                 expectedOrientation = when (exerciseType) {
-                    ExerciseType.SQUAT  -> PhoneOrientation.PORTRAIT
-                    ExerciseType.PUSHUP -> PhoneOrientation.LANDSCAPE
-                    ExerciseType.PLANK  -> PhoneOrientation.LANDSCAPE
-                    ExerciseType.BICEPS_CURL -> PhoneOrientation.PORTRAIT
+                    ExerciseType.SQUAT, ExerciseType.BICEPS_CURL -> PhoneOrientation.PORTRAIT
+                    else -> PhoneOrientation.LANDSCAPE
                 }
             )
         }
+    }
+}
 
-        // ── Countdown overlay ─────────────────────────────────────────────
-        if (workoutState is WorkoutState.Countdown) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = (workoutState as WorkoutState.Countdown).secondsRemaining.toString(),
-                    color = Color(0xFF00E5FF),
-                    fontSize = 96.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        if (workoutState is WorkoutState.Rest) {
-            val restState = workoutState as WorkoutState.Rest
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Rest",
-                        color = Color(0xFF00E5FF),
-                        fontSize = 32.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "${restState.secondsRemaining}s",
-                        color = Color.White,
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Set ${restState.currentSet} of ${restState.totalSets} complete",
-                        color = Color(0xFFB0BEC5),
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
-                }
-            }
-        }
-
-        // ── Feedback banner ───────────────────────────────────────────────
-        if (workoutState !is WorkoutState.Countdown) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.BottomCenter)
-                    .padding(start = 16.dp, end = 16.dp, bottom = 80.dp)
-                    .background(Color(0xCC000000), shape = RoundedCornerShape(12.dp))
-                    .padding(16.dp)
-            ) {
-                Text(
-                    text = when (val s = workoutState) {
-                        is WorkoutState.Idle           -> "Tap Start when ready"
-                        is WorkoutState.WaitingForPose -> s.hint
-                        is WorkoutState.Paused         -> "Paused — tap Resume to continue"
-                        is WorkoutState.Rest           -> "Rest — next set in ${s.secondsRemaining}s"
-                        else                           -> feedbackText
-                    },
-                    color = when (workoutState) {
-                        is WorkoutState.Idle,
-                        is WorkoutState.WaitingForPose,
-                        is WorkoutState.Paused,
-                        is WorkoutState.Rest -> Color(0xFFB0BEC5)
-                        else                 -> feedbackColor
-                    },
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-        }
-
-        // ── Stop button ───────────────────────────────────────────────────
-        Button(
-            onClick = { saveAndExit() },
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .statusBarsPadding()
-                .padding(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF5252)),
-            shape = RoundedCornerShape(8.dp)
+@Composable
+fun WorkoutTopBar(
+    exerciseName: String,
+    reps: Int,
+    holdSeconds: Int,
+    isPlank: Boolean,
+    isCalibrating: Boolean,
+    onClose: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top
+    ) {
+        // Metric Card
+        Surface(
+            color = PoseXSurface.copy(alpha = 0.9f),
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.width(160.dp)
         ) {
-            Text(text = "Stop", color = Color.White)
-        }
-
-        // ── Start / Pause / Resume ────────────────────────────────────────
-        val actionLabel = when (workoutState) {
-            is WorkoutState.Idle   -> "Start"
-            is WorkoutState.Paused -> "Resume"
-            is WorkoutState.Active -> "Pause"
-            else                   -> null
-        }
-
-        if (actionLabel != null) {
-            Button(
-                onClick = {
-                    when (workoutState) {
-                        is WorkoutState.Active -> session.pause()
-                        else                   -> session.start()
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
-                shape = RoundedCornerShape(8.dp)
+            Column(
+                modifier = Modifier.padding(16.dp),
+                horizontalAlignment = Alignment.Start
             ) {
                 Text(
-                    text = actionLabel,
-                    color = Color(0xFF0A0F1E),
-                    fontWeight = FontWeight.Bold
+                    exerciseName.uppercase(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = PoseXAccent
                 )
-            }
-        }
-
-        // ── Exercise label + rep/hold counter ─────────────────────────────
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(top = 16.dp)
-                .background(Color(0xCC000000), shape = RoundedCornerShape(8.dp))
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = exerciseType.name,
-                    color = Color(0xFF00E5FF),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold
+                    text = if (isPlank) "${holdSeconds}s" else reps.toString(),
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Black,
+                        color = PoseXSuccess
+                    )
                 )
-
-                // Show "Calibrating..." label during first rep
-                val isCalibrating = lastResult?.isCalibrating == true &&
-                        workoutState is WorkoutState.Active
-
                 if (isCalibrating) {
                     Text(
-                        text = "Calibrating...",
-                        color = Color(0xFFFFB300),
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
-                }
-
-                if (exerciseType == ExerciseType.PLANK) {
-                    Text(
-                        text = "Hold: ${lastResult?.holdDurationSeconds ?: 0}s",
-                        color = Color(0xFF00E676),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                } else {
-                    val displayReps = when (val s = workoutState) {
-                        is WorkoutState.Active    -> s.repCount
-                        is WorkoutState.Paused    -> s.repCount
-                        is WorkoutState.Completed -> s.finalRepCount
-                        else                      -> 0
-                    }
-                    Text(
-                        text = "Reps: $displayReps",
-                        color = Color(0xFF00E676),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
-
-                if (config.sets > 1) {
-                    Text(
-                        text = "Set $currentSetIndex of ${config.sets}",
-                        color = Color(0xFFB0BEC5),
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 2.dp)
+                        "CALIBRATING",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFFFFB300)
                     )
                 }
             }
+        }
+
+        // Exit Button
+        IconButton(
+            onClick = onClose,
+            modifier = Modifier
+                .background(PoseXError.copy(alpha = 0.2f), RoundedCornerShape(12.dp))
+                .padding(4.dp)
+        ) {
+            Icon(Icons.Default.Close, contentDescription = "Exit", tint = PoseXError)
+        }
+    }
+}
+
+@Composable
+fun FeedbackBanner(text: String, color: Color) {
+    Surface(
+        color = PoseXSurface.copy(alpha = 0.95f),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        shape = RoundedCornerShape(16.dp),
+        border = androidx.compose.foundation.BorderStroke(2.dp, color.copy(alpha = 0.5f))
+    ) {
+        Text(
+            text = text,
+            color = color,
+            style = MaterialTheme.typography.titleLarge.copy(
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            ),
+            modifier = Modifier.padding(24.dp)
+        )
+    }
+}
+
+@Composable
+fun WorkoutControls(state: WorkoutState, onAction: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(bottom = 32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        when (state) {
+            is WorkoutState.Active, is WorkoutState.Paused, is WorkoutState.Idle -> {
+                Button(
+                    onClick = onAction,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (state is WorkoutState.Active) PoseXSurface else PoseXAccent
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .height(64.dp)
+                        .width(200.dp)
+                ) {
+                    Icon(
+                        if (state is WorkoutState.Active) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = null,
+                        tint = if (state is WorkoutState.Active) PoseXAccent else PoseXBackground
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = if (state is WorkoutState.Active) "PAUSE" else if (state is WorkoutState.Paused) "RESUME" else "START",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = if (state is WorkoutState.Active) PoseXAccent else PoseXBackground
+                        )
+                    )
+                }
+            }
+            else -> {}
+        }
+    }
+}
+
+@Composable
+fun CountdownOverlay(seconds: Int) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        Text(
+            text = seconds.toString(),
+            style = MaterialTheme.typography.displayLarge.copy(
+                fontSize = 160.sp,
+                fontWeight = FontWeight.Black,
+                color = PoseXAccent
+            )
+        )
+    }
+}
+
+@Composable
+fun RestOverlay(seconds: Int, setInfo: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(PoseXBackground.copy(alpha = 0.9f)),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(setInfo, color = PoseXAccent, style = MaterialTheme.typography.labelLarge)
+            Text(
+                "REST: ${seconds}S",
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontWeight = FontWeight.Black,
+                    color = Color.White
+                )
+            )
         }
     }
 }

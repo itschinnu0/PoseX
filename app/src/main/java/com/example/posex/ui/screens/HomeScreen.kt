@@ -3,108 +3,136 @@ package com.example.posex.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.posex.exercise.ExerciseType
+import com.example.posex.ui.theme.PoseXAccent
+import com.example.posex.ui.theme.PoseXBackground
+import com.example.posex.ui.theme.PoseXSurface
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onExerciseSelected: (ExerciseType) -> Unit) {
-
+fun HomeScreen(
+    onExerciseSelected: (ExerciseType) -> Unit
+) {
     val exercises = listOf(
-        Triple(ExerciseType.SQUAT, "Squats", "Tracks knee angle and torso upright position"),
-        Triple(ExerciseType.PUSHUP, "Push-Ups", "Tracks elbow angle and body alignment"),
-        Triple(ExerciseType.PLANK, "Plank", "Tracks body straightness and elbow position"),
-        Triple(ExerciseType.BICEPS_CURL, "Bicep Curls", "Tracks elbow angle and stationary arm position")
+        Triple(ExerciseType.SQUAT, "Squats", "Knee angle & torso alignment"),
+        Triple(ExerciseType.PUSHUP, "Push-Ups", "Elbow depth & plank line"),
+        Triple(ExerciseType.PLANK, "Plank", "Hold duration & core stability"),
+        Triple(ExerciseType.BICEPS_CURL, "Bicep Curls", "Elbow path & isolation")
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0A0F1E), Color(0xFF0D1B2A))
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        "POSEX",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Black,
+                            letterSpacing = 4.sp,
+                            color = PoseXAccent
+                        )
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = PoseXBackground
                 )
             )
-            .statusBarsPadding()
-    ) {
-        Column(
+        },
+        containerColor = PoseXBackground
+    ) { padding ->
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+                .padding(padding)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 100.dp, top = 16.dp)
         ) {
-            Text(
-                text = "PoseX",
-                fontSize = 42.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color(0xFF00E5FF),
-                textAlign = TextAlign.Center
-            )
+            item {
+                Text(
+                    "SELECT YOUR WORKOUT",
+                    style = MaterialTheme.typography.labelLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        letterSpacing = 2.sp
+                    ),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
-            Text(
-                text = "Select your exercise",
-                fontSize = 16.sp,
-                color = Color(0xFFB0BEC5),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp, bottom = 48.dp)
-            )
-
-            exercises.forEach { (type, name, description) ->
-                ExerciseCard(
+            items(exercises) { (type, name, description) ->
+                ExerciseProtocolCard(
                     name = name,
                     description = description,
                     onClick = { onExerciseSelected(type) }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 }
 
 @Composable
-fun ExerciseCard(
+fun ExerciseProtocolCard(
     name: String,
     description: String,
     onClick: () -> Unit
 ) {
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
             .clickable { onClick() },
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF112233)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        color = PoseXSurface,
+        tonalElevation = 4.dp,
+        shadowElevation = 8.dp
     ) {
-        Column(
+        Row(
             modifier = Modifier
-                .fillMaxWidth()
                 .padding(20.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(
-                text = name,
-                fontSize = 22.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = Color.White
-            )
-            Spacer(modifier = Modifier.height(6.dp))
-            Text(
-                text = description,
-                fontSize = 14.sp,
-                color = Color(0xFFB0BEC5)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = name.uppercase(),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        letterSpacing = 1.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+
+            Icon(
+                imageVector = Icons.Default.PlayArrow,
+                contentDescription = null,
+                tint = PoseXAccent,
+                modifier = Modifier.size(32.dp)
             )
         }
     }

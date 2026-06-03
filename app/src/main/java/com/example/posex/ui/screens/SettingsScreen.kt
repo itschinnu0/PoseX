@@ -1,325 +1,181 @@
 package com.example.posex.ui.screens
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.posex.data.ProfileStorageService
 import com.example.posex.data.UserProfile
+import com.example.posex.ui.theme.*
 
 @Composable
 fun SettingsScreen(
     activeProfile: UserProfile?,
-    allProfiles: List<UserProfile>,
+    profiles: List<UserProfile>,
     profileStorageService: ProfileStorageService,
-    onProfileSwitched: (UserProfile) -> Unit,
     onEditProfile: (UserProfile) -> Unit,
+    onSelectProfile: (UserProfile) -> Unit,
     onCreateNewProfile: () -> Unit,
     onBack: () -> Unit
 ) {
-    var profiles by remember { mutableStateOf(allProfiles) }
-    val scrollState = rememberScrollState()
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A0F1E))
-            .statusBarsPadding()
-            .verticalScroll(scrollState)
-            .padding(20.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = onBack,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF112233)),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-            ) {
-                Text(text = "←", color = Color.White, fontSize = 16.sp)
-            }
-            Text(
-                text = "Settings",
-                color = Color(0xFF00E5FF),
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(end = 44.dp)
-            )
-        }
-
-        SectionDivider()
-
-        SectionHeader("Active Profile")
-
-        if (activeProfile == null) {
-            Text(
-                text = "No profile selected",
-                color = Color(0xFFB0BEC5),
-                fontSize = 14.sp
-            )
-        } else {
-            ProfileCard(
-                profile = activeProfile,
-                trailingContent = {
-                    OutlinedButton(
-                        onClick = { onEditProfile(activeProfile) },
-                        border = BorderStroke(1.dp, Color.White),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text(text = "Edit")
+    Scaffold(
+        containerColor = PoseXBackground,
+        topBar = {
+            Surface(color = PoseXBackground) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().statusBarsPadding().padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                },
-                onClick = {}
-            )
+                    Text(
+                        "SETTINGS",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Black, letterSpacing = 1.sp, color = Color.White)
+                    )
+                }
+            }
         }
-
-        SectionDivider()
-        val otherProfiles = profiles.filter { it.id != activeProfile?.id }
-        if (otherProfiles.isEmpty()) {
-        SectionHeader("Switch Profile")
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                otherProfiles.forEach { profile ->
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 32.dp, top = 8.dp)
+        ) {
+            item {
+                SectionHeader("ACTIVE PROFILE")
+                activeProfile?.let { profile ->
                     ProfileCard(
                         profile = profile,
-                        onClick = {
-                            profileStorageService.setActiveProfile(profile.id)
-                            onProfileSwitched(profile)
-                        }
-                    )
-                }
-            }
-        }
-
-        SectionDivider()
-
-        SectionHeader("Manage Profiles")
-
-        Button(
-            onClick = onCreateNewProfile,
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
-            shape = RoundedCornerShape(10.dp)
-        ) {
-            Text(
-                text = "Create New Profile",
-                color = Color(0xFF0A0F1E),
-                fontWeight = FontWeight.Bold
-            )
-        }
-
-        if (profiles.size >= 2) {
-            Spacer(modifier = Modifier.height(12.dp))
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                profiles.forEach { profile ->
-                    val isActive = profile.id == activeProfile?.id
-                    DeletableProfileCard(
-                        profile = profile,
-                        isDeleteEnabled = !isActive,
-                        onDelete = {
-                            if (!isActive) {
-                                profileStorageService.deleteProfile(profile.id)
-                                profiles = profiles.filterNot { it.id == profile.id }
+                        action = {
+                            IconButton(onClick = { onEditProfile(profile) }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = PoseXAccent)
                             }
-                        }
+                        },
+                        onClick = {}
                     )
                 }
             }
-        }
 
-        SectionDivider()
+            item {
+                SectionHeader("SAVED PROFILES")
+            }
 
-        SectionHeader("About")
+            items(profiles.filter { it.id != activeProfile?.id }) { profile ->
+                DeletableProfileCard(
+                    profile = profile,
+                    onDelete = { profileStorageService.deleteProfile(profile.id) },
+                    onClick = { onSelectProfile(profile) }
+                )
+            }
 
-        InfoRow(label = "Version", value = "1.0.0")
-        InfoRow(label = "Build", value = "MVP")
-    }
-}
-
-@Composable
-private fun SectionHeader(text: String) {
-    Text(
-        text = text,
-        color = Color.White,
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
-    )
-}
-
-@Composable
-private fun SectionDivider() {
-    Spacer(modifier = Modifier.height(16.dp))
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(1.dp)
-            .background(Color(0xFF1B2B40))
-    )
-}
-
-@Composable
-private fun ProfileCard(
-    profile: UserProfile,
-    trailingContent: (@Composable () -> Unit)? = null,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF112233), RoundedCornerShape(16.dp))
-            .clickable { onClick() }
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AvatarCircle(profile = profile, size = 56.dp)
-        Spacer(modifier = Modifier.size(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = profile.name,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Text(
-                text = "${profile.age} · ${profile.gender}",
-                color = Color(0xFFB0BEC5),
-                fontSize = 13.sp
-            )
-        }
-        if (trailingContent != null) {
-            trailingContent()
-        }
-    }
-}
-
-@Composable
-private fun DeletableProfileCard(
-    profile: UserProfile,
-    isDeleteEnabled: Boolean,
-    onDelete: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFF112233), RoundedCornerShape(16.dp))
-            .padding(14.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        AvatarCircle(profile = profile, size = 48.dp)
-        Spacer(modifier = Modifier.size(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = profile.name,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                fontSize = 16.sp
-            )
-            Text(
-                text = "${profile.age} · ${profile.gender}",
-                color = Color(0xFFB0BEC5),
-                fontSize = 13.sp
-            )
-        }
-        Text(
-            text = "🗑",
-            color = if (isDeleteEnabled) Color(0xFFFF5252) else Color(0xFF555555),
-            fontSize = 18.sp,
-            modifier = Modifier
-                .padding(start = 8.dp)
-                .let { base ->
-                    if (isDeleteEnabled) base.clickable { onDelete() } else base
+            item {
+                Button(
+                    onClick = onCreateNewProfile,
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PoseXSurface),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(Icons.Default.Add, contentDescription = null, tint = PoseXAccent)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("CREATE NEW PROFILE", color = PoseXAccent, style = MaterialTheme.typography.labelLarge)
                 }
-        )
-    }
-}
-
-@Composable
-private fun AvatarCircle(profile: UserProfile, size: androidx.compose.ui.unit.Dp) {
-    Box(
-        modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(Color(0xFF112233))
-            .border(1.dp, Color(0xFF1B2B40), CircleShape)
-    ) {
-        if (!profile.avatarUri.isNullOrBlank()) {
-            AsyncImage(
-                model = profile.avatarUri,
-                contentDescription = "Profile avatar",
-                modifier = Modifier.fillMaxSize()
-            )
-        } else {
-            Text(
-                text = initialsForName(profile.name),
-                color = Color(0xFF00E5FF),
-                fontSize = if (size >= 56.dp) 20.sp else 16.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            }
         }
     }
 }
 
 @Composable
-private fun InfoRow(label: String, value: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall,
+        color = PoseXAccent,
+        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp)
+    )
+}
+
+@Composable
+fun ProfileCard(profile: UserProfile, action: @Composable (() -> Unit)?, onClick: () -> Unit) {
+    Surface(
+        color = PoseXSurface,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }
     ) {
-        Text(text = label, color = Color(0xFFB0BEC5), fontSize = 13.sp)
-        Text(text = value, color = Color(0xFFB0BEC5), fontSize = 13.sp)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AvatarCircle(profile, 48.dp)
+            Spacer(modifier = Modifier.width(16.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(profile.name.uppercase(), style = MaterialTheme.typography.titleMedium, color = Color.White, fontWeight = FontWeight.Bold)
+                Text("BIO: ${profile.age}Y | ${profile.heightCm}CM | ${profile.weightKg}KG", style = MaterialTheme.typography.labelSmall, color = PoseXOnSurface)
+            }
+            action?.invoke()
+        }
+    }
+}
+
+@Composable
+fun DeletableProfileCard(profile: UserProfile, onDelete: () -> Unit, onClick: () -> Unit) {
+    Surface(
+        color = PoseXSurface,
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() }
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AvatarCircle(profile, 40.dp)
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(profile.name.uppercase(), style = MaterialTheme.typography.bodyLarge, color = Color.White, fontWeight = FontWeight.Bold)
+            }
+            IconButton(onClick = onDelete) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = PoseXError.copy(alpha = 0.6f))
+            }
+        }
+    }
+}
+
+@Composable
+fun AvatarCircle(profile: UserProfile, size: androidx.compose.ui.unit.Dp) {
+    Surface(
+        modifier = Modifier.size(size),
+        shape = CircleShape,
+        color = PoseXBackground,
+        border = androidx.compose.foundation.BorderStroke(1.dp, PoseXAccent)
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                initialsForName(profile.name),
+                style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Black, color = PoseXAccent)
+            )
+        }
     }
 }
 
 private fun initialsForName(name: String): String {
-    val parts = name.trim().split(" ").filter { it.isNotBlank() }
-    if (parts.isEmpty()) return "--"
-    if (parts.size == 1) {
-        val word = parts.first().uppercase()
-        return word.take(2)
-    }
-    return (parts.first().take(1) + parts.last().take(1)).uppercase()
+    return name.split(" ")
+        .filter { it.isNotEmpty() }
+        .take(2)
+        .map { it[0].uppercase() }
+        .joinToString("")
 }
-
