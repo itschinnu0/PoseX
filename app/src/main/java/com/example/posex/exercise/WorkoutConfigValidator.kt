@@ -14,6 +14,7 @@ object WorkoutConfigValidator {
             ExerciseType.SQUAT  -> validateSquat(config, warnings)
             ExerciseType.PUSHUP -> validatePushup(config, warnings)
             ExerciseType.PLANK  -> validatePlank(config, warnings)
+            ExerciseType.BICEPS_CURL -> validateBicepsCurl(config, warnings)
         }
     }
 
@@ -130,6 +131,41 @@ object WorkoutConfigValidator {
 
         return ValidationResult(
             config.copy(holdSeconds = hold, sets = sets, restSeconds = rest),
+            warnings
+        )
+    }
+
+    private fun validateBicepsCurl(
+        config: WorkoutConfig,
+        warnings: MutableList<String>
+    ): ValidationResult {
+        var reps = config.repsPerSet
+        var sets = config.sets
+        var rest = config.restSeconds
+
+        if (reps < 5) {
+            warnings.add("Minimum 5 reps per set for curls. Adjusted to 5.")
+            reps = 5
+        }
+        if (reps > 20) {
+            warnings.add("20 reps is high volume for isolation work. Adjusted to 20.")
+            reps = 20
+        }
+        if (sets < 1) {
+            warnings.add("Minimum 1 set required. Adjusted to 1.")
+            sets = 1
+        }
+        if (sets > 5) {
+            warnings.add("More than 5 sets is excessive. Adjusted to 5.")
+            sets = 5
+        }
+        if (rest < 30) {
+            warnings.add("Minimum 30 seconds rest needed. Adjusted to 30s.")
+            rest = 30
+        }
+
+        return ValidationResult(
+            config.copy(repsPerSet = reps, sets = sets, restSeconds = rest),
             warnings
         )
     }

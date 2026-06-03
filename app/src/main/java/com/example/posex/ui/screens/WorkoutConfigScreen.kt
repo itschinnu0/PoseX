@@ -31,7 +31,7 @@ fun WorkoutConfigScreen(
 ) {
     val defaults = remember(exerciseType) {
         when (exerciseType) {
-            ExerciseType.SQUAT, ExerciseType.PUSHUP -> Triple(10, 3, 60)
+            ExerciseType.SQUAT, ExerciseType.PUSHUP, ExerciseType.BICEPS_CURL -> Triple(10, 3, 60)
             ExerciseType.PLANK -> Triple(30, 2, 60)
         }
     }
