@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.example.posex.data.SessionRecord
 import com.example.posex.data.StorageService
+import com.example.posex.exercise.BicepsAnalyzer
 import com.example.posex.exercise.CuePrioritizer
 import com.example.posex.exercise.ExerciseAnalysisResult
 import com.example.posex.exercise.ExerciseType
@@ -158,6 +159,7 @@ fun WorkoutScreen(
                 if (newState !is WorkoutState.Active) {
                     warningFrameCounts.clear()
                     rejectionText = ""
+                    sfxManager.stopTimerLoop()
                 }
                 if (newState !is WorkoutState.Active && newState !is WorkoutState.Paused) {
                     lastRepCount = 0
@@ -187,6 +189,7 @@ fun WorkoutScreen(
             ExerciseType.SQUAT  -> SquatsAnalyzer.resetRepCounter()
             ExerciseType.PUSHUP -> PushupAnalyzer.resetRepCounter()
             ExerciseType.PLANK  -> PlankAnalyzer.resetRepCounter()
+            ExerciseType.BICEPS_CURL -> BicepsAnalyzer.resetRepCounter()
         }
     }
 
@@ -239,6 +242,7 @@ fun WorkoutScreen(
             ExerciseType.SQUAT  -> SquatsAnalyzer.analyze(pose)
             ExerciseType.PUSHUP -> PushupAnalyzer.analyze(pose)
             ExerciseType.PLANK  -> PlankAnalyzer.analyze(pose)
+            ExerciseType.BICEPS_CURL -> BicepsAnalyzer.analyze(pose)
         }
 
         lastResult = result
@@ -246,6 +250,14 @@ fun WorkoutScreen(
         if (exerciseType != ExerciseType.PLANK && result.repCount > lastRepCount) {
             sfxManager.playRepIncrement()
             lastRepCount = result.repCount
+        }
+
+        if (exerciseType == ExerciseType.PLANK) {
+            if (result.isTimerRunning) {
+                sfxManager.startTimerLoop()
+            } else {
+                sfxManager.stopTimerLoop()
+            }
         }
 
         if (result.exerciseCompleted) {
@@ -278,6 +290,7 @@ fun WorkoutScreen(
             val calibrationHint = when (exerciseType) {
                 ExerciseType.SQUAT  -> "Do one full squat to calibrate"
                 ExerciseType.PUSHUP -> "Do one full push-up to calibrate"
+                ExerciseType.BICEPS_CURL -> "Do one full curl to calibrate"
                 ExerciseType.PLANK  -> ""
             }
             if (calibrationHint.isNotEmpty()) {
@@ -392,6 +405,7 @@ fun WorkoutScreen(
                     ExerciseType.SQUAT  -> PhoneOrientation.PORTRAIT
                     ExerciseType.PUSHUP -> PhoneOrientation.LANDSCAPE
                     ExerciseType.PLANK  -> PhoneOrientation.LANDSCAPE
+                    ExerciseType.BICEPS_CURL -> PhoneOrientation.PORTRAIT
                 }
             )
         }

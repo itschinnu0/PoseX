@@ -52,7 +52,8 @@ fun StatsScreen(
         mapOf(
             ExerciseType.SQUAT to storageService.getPersonalBest("SQUAT", activeProfileId),
             ExerciseType.PUSHUP to storageService.getPersonalBest("PUSHUP", activeProfileId),
-            ExerciseType.PLANK to storageService.getPersonalBest("PLANK", activeProfileId)
+            ExerciseType.PLANK to storageService.getPersonalBest("PLANK", activeProfileId),
+            ExerciseType.BICEPS_CURL to storageService.getPersonalBest("BICEPS_CURL", activeProfileId)
         )
     }
 
@@ -102,25 +103,37 @@ fun StatsScreen(
             }
 
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    PersonalBestCard(
-                        title = "SQUAT",
-                        value = personalBestValue(ExerciseType.SQUAT, personalBests[ExerciseType.SQUAT]),
-                        modifier = Modifier.weight(1f)
-                    )
-                    PersonalBestCard(
-                        title = "PUSHUP",
-                        value = personalBestValue(ExerciseType.PUSHUP, personalBests[ExerciseType.PUSHUP]),
-                        modifier = Modifier.weight(1f)
-                    )
-                    PersonalBestCard(
-                        title = "PLANK",
-                        value = personalBestValue(ExerciseType.PLANK, personalBests[ExerciseType.PLANK]),
-                        modifier = Modifier.weight(1f)
-                    )
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        PersonalBestCard(
+                            title = "SQUAT",
+                            value = personalBestValue(ExerciseType.SQUAT, personalBests[ExerciseType.SQUAT]),
+                            modifier = Modifier.weight(1f)
+                        )
+                        PersonalBestCard(
+                            title = "PUSHUP",
+                            value = personalBestValue(ExerciseType.PUSHUP, personalBests[ExerciseType.PUSHUP]),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        PersonalBestCard(
+                            title = "PLANK",
+                            value = personalBestValue(ExerciseType.PLANK, personalBests[ExerciseType.PLANK]),
+                            modifier = Modifier.weight(1f)
+                        )
+                        PersonalBestCard(
+                            title = "CURL",
+                            value = personalBestValue(ExerciseType.BICEPS_CURL, personalBests[ExerciseType.BICEPS_CURL]),
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
                 }
             }
 
@@ -245,7 +258,7 @@ private fun SessionRow(session: SessionRecord) {
 private fun personalBestValue(type: ExerciseType, best: PersonalBest?): String {
     return when (type) {
         ExerciseType.PLANK -> best?.holdSeconds?.takeIf { it > 0 }?.let { "${it}s" }
-        ExerciseType.SQUAT, ExerciseType.PUSHUP -> best?.repCount?.takeIf { it > 0 }?.toString()
+        ExerciseType.SQUAT, ExerciseType.PUSHUP, ExerciseType.BICEPS_CURL -> best?.repCount?.takeIf { it > 0 }?.toString()
     } ?: "—"
 }
 

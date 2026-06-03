@@ -24,7 +24,8 @@ fun HomeScreen(onExerciseSelected: (ExerciseType) -> Unit) {
     val exercises = listOf(
         Triple(ExerciseType.SQUAT, "Squats", "Tracks knee angle and torso upright position"),
         Triple(ExerciseType.PUSHUP, "Push-Ups", "Tracks elbow angle and body alignment"),
-        Triple(ExerciseType.PLANK, "Plank", "Tracks body straightness and elbow position")
+        Triple(ExerciseType.PLANK, "Plank", "Tracks body straightness and elbow position"),
+        Triple(ExerciseType.BICEPS_CURL, "Bicep Curls", "Tracks elbow angle and stationary arm position")
     )
 
     Box(
