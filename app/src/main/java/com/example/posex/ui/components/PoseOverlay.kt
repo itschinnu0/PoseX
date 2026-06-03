@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import com.example.posex.ui.theme.PoseXAccent
 import com.google.mlkit.vision.pose.Pose
 import com.google.mlkit.vision.pose.PoseLandmark
 
@@ -21,13 +23,10 @@ fun PoseOverlay(
         val canvasWidth = size.width
         val canvasHeight = size.height
 
-        // CameraX in portrait delivers frames rotated 90 degrees
-        // so image width maps to screen height and vice versa
         val scaleX = canvasWidth / imageHeight.toFloat()
         val scaleY = canvasHeight / imageWidth.toFloat()
 
         fun landmarkToOffset(landmark: PoseLandmark): Offset {
-            // Mirror X axis for front camera
             val x = canvasWidth - (landmark.position.x * scaleX)
             val y = landmark.position.y * scaleY
             return Offset(x, y)
@@ -41,47 +40,39 @@ fun PoseOverlay(
                 end.inFrameLikelihood > confidenceThreshold
             ) {
                 drawLine(
-                    color = Color(0xFF00E5FF),
+                    color = PoseXAccent,
                     start = landmarkToOffset(start),
                     end = landmarkToOffset(end),
-                    strokeWidth = 6f
+                    strokeWidth = 10f,
+                    cap = StrokeCap.Round
                 )
             }
         }
 
-        // Torso
-        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.RIGHT_SHOULDER)
-        drawBone(PoseLandmark.LEFT_HIP, PoseLandmark.RIGHT_HIP)
-        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_HIP)
-        drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_HIP)
+        // Draw connections
+        val connections = listOf(
+            PoseLandmark.LEFT_SHOULDER to PoseLandmark.RIGHT_SHOULDER,
+            PoseLandmark.LEFT_HIP to PoseLandmark.RIGHT_HIP,
+            PoseLandmark.LEFT_SHOULDER to PoseLandmark.LEFT_HIP,
+            PoseLandmark.RIGHT_SHOULDER to PoseLandmark.RIGHT_HIP,
+            PoseLandmark.LEFT_SHOULDER to PoseLandmark.LEFT_ELBOW,
+            PoseLandmark.LEFT_ELBOW to PoseLandmark.LEFT_WRIST,
+            PoseLandmark.RIGHT_SHOULDER to PoseLandmark.RIGHT_ELBOW,
+            PoseLandmark.RIGHT_ELBOW to PoseLandmark.RIGHT_WRIST,
+            PoseLandmark.LEFT_HIP to PoseLandmark.LEFT_KNEE,
+            PoseLandmark.LEFT_KNEE to PoseLandmark.LEFT_ANKLE,
+            PoseLandmark.RIGHT_HIP to PoseLandmark.RIGHT_KNEE,
+            PoseLandmark.RIGHT_KNEE to PoseLandmark.RIGHT_ANKLE
+        )
 
-        // Left arm
-        drawBone(PoseLandmark.LEFT_SHOULDER, PoseLandmark.LEFT_ELBOW, 0.7f)
-        drawBone(PoseLandmark.LEFT_ELBOW, PoseLandmark.LEFT_WRIST, 0.7f)
+        connections.forEach { (s, e) -> drawBone(s, e) }
 
-        // Right arm
-        drawBone(PoseLandmark.RIGHT_SHOULDER, PoseLandmark.RIGHT_ELBOW, 0.7f)
-        drawBone(PoseLandmark.RIGHT_ELBOW, PoseLandmark.RIGHT_WRIST, 0.7f)
-
-        // Left leg
-        drawBone(PoseLandmark.LEFT_HIP, PoseLandmark.LEFT_KNEE)
-        drawBone(PoseLandmark.LEFT_KNEE, PoseLandmark.LEFT_ANKLE)
-
-        // Right leg
-        drawBone(PoseLandmark.RIGHT_HIP, PoseLandmark.RIGHT_KNEE)
-        drawBone(PoseLandmark.RIGHT_KNEE, PoseLandmark.RIGHT_ANKLE)
-
-        // Dots
+        // Points
         pose.allPoseLandmarks.forEach { landmark ->
-            val threshold = when (landmark.landmarkType) {
-                PoseLandmark.LEFT_ELBOW, PoseLandmark.RIGHT_ELBOW,
-                PoseLandmark.LEFT_WRIST, PoseLandmark.RIGHT_WRIST -> 0.7f
-                else -> 0.5f
-            }
-            if (landmark.inFrameLikelihood > threshold) {
+            if (landmark.inFrameLikelihood > 0.6f) {
                 drawCircle(
                     color = Color.White,
-                    radius = 10f,
+                    radius = 8f,
                     center = landmarkToOffset(landmark)
                 )
             }

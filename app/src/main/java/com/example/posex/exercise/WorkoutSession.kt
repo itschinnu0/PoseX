@@ -87,8 +87,11 @@ class WorkoutSession(
 
     fun onRepUpdated(newRepCount: Int): Boolean {
         if (currentState !is WorkoutState.Active) return false
+        
         transition(WorkoutState.Active(newRepCount))
-        if (targetReps > 0 && newRepCount >= targetReps) {
+        
+        // Only check for completion if we're still in Active state (not transitioned to Rest)
+        if (currentState is WorkoutState.Active && targetReps > 0 && newRepCount >= targetReps) {
             return onSetCompleted(finalRepCount = newRepCount)
         }
         return false

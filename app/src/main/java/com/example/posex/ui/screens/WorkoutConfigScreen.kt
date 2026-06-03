@@ -3,15 +3,8 @@ package com.example.posex.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Slider
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,6 +15,7 @@ import androidx.compose.ui.unit.sp
 import com.example.posex.exercise.ExerciseType
 import com.example.posex.exercise.WorkoutConfig
 import com.example.posex.exercise.WorkoutConfigValidator
+import com.example.posex.ui.theme.*
 
 @Composable
 fun WorkoutConfigScreen(
@@ -36,9 +30,9 @@ fun WorkoutConfigScreen(
         }
     }
 
-    var repsOrHold by remember { mutableStateOf(defaults.first.toFloat()) }
-    var sets by remember { mutableStateOf(defaults.second.toFloat()) }
-    var restSeconds by remember { mutableStateOf(defaults.third.toFloat()) }
+    var repsOrHold by remember { mutableFloatStateOf(defaults.first.toFloat()) }
+    var sets by remember { mutableFloatStateOf(defaults.second.toFloat()) }
+    var restSeconds by remember { mutableFloatStateOf(defaults.third.toFloat()) }
 
     val config = when (exerciseType) {
         ExerciseType.PLANK -> WorkoutConfig(
@@ -57,144 +51,108 @@ fun WorkoutConfigScreen(
 
     val validation = WorkoutConfigValidator.validate(config)
     val warnings = validation.warnings
-    val hasCriticalIssues = false
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A0F1E))
-            .statusBarsPadding()
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = onBack,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF112233)),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Text(text = "Back", color = Color.White)
-                }
-
-                Text(
-                    text = exerciseType.name,
-                    color = Color(0xFF00E5FF),
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center,
+    Scaffold(
+        containerColor = PoseXBackground,
+        topBar = {
+            Surface(color = PoseXBackground) {
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .padding(end = 48.dp)
-                )
+                        .fillMaxWidth()
+                        .statusBarsPadding()
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(onClick = onBack) {
+                        Text("BACK", color = PoseXOnSurface)
+                    }
+                    Text(
+                        exerciseType.name,
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Black,
+                            color = PoseXAccent,
+                            textAlign = TextAlign.Center
+                        ),
+                        modifier = Modifier.weight(1f).padding(end = 48.dp)
+                    )
+                }
             }
+        }
+    ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(20.dp)
+                ) {
+                    Text("WORKOUT SETTINGS", style = MaterialTheme.typography.labelMedium, color = PoseXAccent)
+                    Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF112233), RoundedCornerShape(16.dp))
-                    .padding(16.dp)
+            Surface(
+                color = PoseXSurface,
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
             ) {
-                if (exerciseType == ExerciseType.PLANK) {
+                Column(modifier = Modifier.padding(20.dp)) {
                     LabeledSlider(
-                        label = "Hold Duration (seconds)",
+                        label = if (exerciseType == ExerciseType.PLANK) "HOLD DURATION" else "REPS PER SET",
                         value = repsOrHold,
-                        valueRange = 1f..300f,
+                        valueRange = 1f..120f,
                         onValueChange = { repsOrHold = it },
                         displayValue = repsOrHold.toInt().toString()
                     )
-                } else {
+                    Spacer(modifier = Modifier.height(24.dp))
                     LabeledSlider(
-                        label = "Reps per Set",
-                        value = repsOrHold,
-                        valueRange = 1f..50f,
-                        onValueChange = { repsOrHold = it },
-                        displayValue = repsOrHold.toInt().toString()
+                        label = "SETS",
+                        value = sets,
+                        valueRange = 1f..10f,
+                        onValueChange = { sets = it },
+                        displayValue = sets.toInt().toString()
+                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+                    LabeledSlider(
+                        label = "REST PERIOD (S)",
+                        value = restSeconds,
+                        valueRange = 10f..180f,
+                        onValueChange = { restSeconds = it },
+                        displayValue = restSeconds.toInt().toString()
                     )
                 }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LabeledSlider(
-                    label = "Sets",
-                    value = sets,
-                    valueRange = if (exerciseType == ExerciseType.PLANK) 1f..5f else 1f..10f,
-                    onValueChange = { sets = it },
-                    displayValue = sets.toInt().toString()
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                LabeledSlider(
-                    label = "Rest Between Sets (seconds)",
-                    value = restSeconds,
-                    valueRange = 10f..300f,
-                    onValueChange = { restSeconds = it },
-                    displayValue = restSeconds.toInt().toString()
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                val targetLabel = if (exerciseType == ExerciseType.PLANK) {
-                    "Target per set: ${validation.config.holdSeconds}s hold"
-                } else {
-                    "Target per set: ${validation.config.repsPerSet} reps"
-                }
-
-                Text(
-                    text = targetLabel,
-                    color = Color(0xFFB0BEC5),
-                    fontSize = 13.sp,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
             }
 
             if (warnings.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(16.dp))
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color(0xFF112233), RoundedCornerShape(12.dp))
-                        .padding(12.dp)
+                Surface(
+                    color = PoseXError.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    warnings.forEach { warning ->
-                        Text(
-                            text = warning,
-                            color = Color(0xFFFFB300),
-                            fontSize = 14.sp,
-                            modifier = Modifier.padding(vertical = 2.dp)
-                        )
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        warnings.forEach { warning ->
+                            Text(warning, color = PoseXError, style = MaterialTheme.typography.bodySmall)
+                        }
                     }
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
 
-            Button(
-                onClick = { onStartWorkout(validation.config) },
-                enabled = !hasCriticalIssues,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF00E5FF)),
-                shape = RoundedCornerShape(10.dp)
-            ) {
-                Text(
-                    text = "Start Workout",
-                    color = Color(0xFF0A0F1E),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(vertical = 6.dp)
-                )
-            }
+                Button(
+                    onClick = { onStartWorkout(validation.config) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = PoseXAccent),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        "START WORKOUT",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Black,
+                            color = PoseXBackground
+                        )
+                    )
+                }
         }
     }
 }
@@ -210,16 +168,20 @@ private fun LabeledSlider(
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = label, color = Color.White, fontSize = 16.sp)
-            Text(text = displayValue, color = Color(0xFF00E5FF), fontWeight = FontWeight.Bold)
+            Text(label, style = MaterialTheme.typography.labelSmall, color = PoseXOnSurface)
+            Text(displayValue, style = MaterialTheme.typography.titleMedium, color = PoseXAccent, fontWeight = FontWeight.Black)
         }
         Slider(
             value = value,
             onValueChange = onValueChange,
-            valueRange = valueRange
+            valueRange = valueRange,
+            colors = SliderDefaults.colors(
+                thumbColor = PoseXAccent,
+                activeTrackColor = PoseXAccent,
+                inactiveTrackColor = PoseXOnSurface.copy(alpha = 0.2f)
+            )
         )
     }
 }
