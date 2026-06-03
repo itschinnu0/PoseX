@@ -67,7 +67,8 @@
                     repCount = 0,
                     metricValue = null,
                     holdDurationSeconds = holdSeconds,
-                    exerciseCompleted = true
+                    exerciseCompleted = true,
+                    isTimerRunning = false
                 )
             }
 
@@ -83,7 +84,8 @@
                     cues = cues,
                     repCount = 0,
                     metricValue = null,
-                    holdDurationSeconds = holdSeconds
+                    holdDurationSeconds = holdSeconds,
+                    isTimerRunning = false
                 )
             }
 
@@ -105,7 +107,8 @@
                         cues = cues,
                         repCount = 0,
                         metricValue = null,
-                        holdDurationSeconds = holdSeconds
+                        holdDurationSeconds = holdSeconds,
+                        isTimerRunning = false
                     )
                 }
 
@@ -139,7 +142,8 @@
                     repCount = 0,
                     metricValue = null,
                     holdDurationSeconds = holdSeconds,
-                    exerciseCompleted = true
+                    exerciseCompleted = true,
+                    isTimerRunning = false
                 )
             }
 
@@ -182,7 +186,8 @@
                     repCount = 0,
                     metricValue = kneeAngle,
                     holdDurationSeconds = holdSeconds,
-                    exerciseCompleted = true
+                    exerciseCompleted = true,
+                    isTimerRunning = false
                 )
             }
 
@@ -190,7 +195,8 @@
                 cues = cues,
                 repCount = 0,
                 metricValue = kneeAngle,
-                holdDurationSeconds = holdSeconds
+                holdDurationSeconds = holdSeconds,
+                isTimerRunning = timer.isTimerRunning
             )
         }
     }
