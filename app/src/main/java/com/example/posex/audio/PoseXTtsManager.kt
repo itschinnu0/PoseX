@@ -69,7 +69,7 @@ class PoseXTtsManager(context: Context) : TextToSpeech.OnInitListener {
     }
 
     fun speakCue(message: String) {
-        if (!isInitialized || isSpeaking) return
+        if (!isInitialized) return
         if (workoutState !is WorkoutState.Active) return
 
         val trimmed = message.trim()
@@ -88,7 +88,7 @@ class PoseXTtsManager(context: Context) : TextToSpeech.OnInitListener {
         lastMessage = trimmed
         lastMessageAtMs = now
 
-        tts?.speak(trimmed, TextToSpeech.QUEUE_FLUSH, null, "posex_cue")
+        tts?.speak(trimmed, TextToSpeech.QUEUE_ADD, null, "posex_cue")
     }
 
     fun speakCountdown(number: Int) {

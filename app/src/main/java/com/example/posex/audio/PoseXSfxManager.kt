@@ -12,6 +12,7 @@ class PoseXSfxManager(context: Context) {
     private var repLoaded = false
     private var tickLoaded = false
     private var activeTickStreamId: Int? = null
+    private var activeLoopStreamId: Int? = null
 
     init {
         val attributes = AudioAttributes.Builder()
@@ -43,6 +44,18 @@ class PoseXSfxManager(context: Context) {
         if (!tickLoaded) return
         activeTickStreamId?.let { soundPool.stop(it) }
         activeTickStreamId = soundPool.play(tickSoundId, 1f, 1f, 0, 0, 1f)
+    }
+
+    fun startTimerLoop() {
+        if (!tickLoaded || activeLoopStreamId != null) return
+        activeLoopStreamId = soundPool.play(tickSoundId, 0.4f, 0.4f, 1, -1, 1f)
+    }
+
+    fun stopTimerLoop() {
+        activeLoopStreamId?.let {
+            soundPool.stop(it)
+            activeLoopStreamId = null
+        }
     }
 
     fun release() {

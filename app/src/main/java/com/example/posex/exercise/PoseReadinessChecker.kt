@@ -68,6 +68,7 @@ object PoseReadinessChecker {
             ExerciseType.SQUAT  -> checkSquat(pose)
             ExerciseType.PUSHUP -> checkPushup(pose)
             ExerciseType.PLANK  -> checkPlank(pose)
+            ExerciseType.BICEPS_CURL -> checkBicepsCurl(pose)
         }
     }
 
@@ -154,6 +155,24 @@ object PoseReadinessChecker {
             !ankleVisible -> ReadinessResult(false, "Move back — your feet are not visible")
             !elbowVisible -> ReadinessResult(false, "Move back — your elbows are not visible")
             else          -> ReadinessResult(false, "Move back so your full body is visible from the side")
+        }
+    }
+
+    private fun checkBicepsCurl(pose: Pose): ReadinessResult {
+        val leftVisible = isVisible(pose, PoseLandmark.LEFT_SHOULDER) &&
+                isVisible(pose, PoseLandmark.LEFT_ELBOW) &&
+                isVisible(pose, PoseLandmark.LEFT_WRIST) &&
+                isVisible(pose, PoseLandmark.LEFT_HIP)
+
+        val rightVisible = isVisible(pose, PoseLandmark.RIGHT_SHOULDER) &&
+                isVisible(pose, PoseLandmark.RIGHT_ELBOW) &&
+                isVisible(pose, PoseLandmark.RIGHT_WRIST) &&
+                isVisible(pose, PoseLandmark.RIGHT_HIP)
+
+        return if (leftVisible || rightVisible) {
+            ReadinessResult(true, "Ready! Starting curls...")
+        } else {
+            ReadinessResult(false, "Show your full side profile (Shoulder to Hip)")
         }
     }
 
