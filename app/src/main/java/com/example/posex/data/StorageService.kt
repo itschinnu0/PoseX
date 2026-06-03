@@ -63,7 +63,7 @@ class StorageService(context: Context) {
 
     /** Returns all sessions across all exercise types, sorted newest-first. */
     fun getAllSessions(): List<SessionRecord> {
-        return listOf("SQUAT", "PUSHUP", "PLANK")
+        return listOf("SQUAT", "PUSHUP", "PLANK", "BICEPS_CURL")
             .flatMap { getSessions(it) }
             .sortedByDescending { it.date }
     }

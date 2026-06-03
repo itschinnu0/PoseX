@@ -25,5 +25,6 @@ data class ExerciseAnalysisResult(
     val isCalibrating: Boolean = false,
     val repRejected: Boolean = false,
     val rejectionReason: String = "",
-    val exerciseCompleted: Boolean = false
+    val exerciseCompleted: Boolean = false,
+    val isTimerRunning: Boolean = false
 )
