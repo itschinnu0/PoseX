@@ -2,10 +2,13 @@ package com.example.posex.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// PoseX Design System Palette
+val PoseXBackground = Color(0xFF0A0F1E)
+val PoseXAccent = Color(0xFF00E5FF)
+val PoseXSurface = Color(0xFF112233)
+val PoseXSuccess = Color(0xFF00E676)
+val PoseXError = Color(0xFFFF5252)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val PoseXOnBackground = Color(0xFFFFFFFF)
+val PoseXOnSurface = Color(0xFFB0BEC5)
+val PoseXOnPrimary = Color(0xFF0A0F1E)
