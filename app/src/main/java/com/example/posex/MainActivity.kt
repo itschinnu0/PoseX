@@ -32,7 +32,7 @@ sealed class AppDestination {
 
 @Composable
 fun PoseXApp(
-    activeProfileId: String?,
+    activeProfile: UserProfile?,
     profiles: List<UserProfile>,
     onSelectProfile: (UserProfile) -> Unit,
     onSettingsTapped: () -> Unit,
@@ -97,7 +97,7 @@ fun PoseXApp(
             when (selectedTab) {
                 1 -> StatsScreen(
                     storageService = storageService,
-                    activeProfileId = activeProfileId,
+                    activeProfileId = activeProfile?.id,
                     onSettingsTapped = onSettingsTapped
                 )
                 else -> {
@@ -110,6 +110,7 @@ fun PoseXApp(
                             selectedExercise?.let { exercise ->
                                 WorkoutConfigScreen(
                                     exerciseType = exercise,
+                                    activeProfile = activeProfile,
                                     onStartWorkout = { config ->
                                         workoutConfig = config
                                         flowState = HomeFlow.WORKOUT
@@ -128,7 +129,7 @@ fun PoseXApp(
                                 WorkoutScreen(
                                     exerciseType = exercise,
                                     config = config,
-                                    activeProfileId = activeProfileId,
+                                    activeProfileId = activeProfile?.id,
                                     onExit = { sessionId ->
                                         val session = storageService.getAllSessions().firstOrNull { it.id == sessionId }
                                         lastSessionRecord = session
@@ -250,7 +251,7 @@ fun PoseXApp() {
                         }
                         AppDestination.MainApp -> {
                             PoseXApp(
-                                activeProfileId = activeProfile?.id,
+                                activeProfile = activeProfile,
                                 profiles = profiles,
                                 onSelectProfile = { profile ->
                                     profileStorageService.setActiveProfile(profile.id)

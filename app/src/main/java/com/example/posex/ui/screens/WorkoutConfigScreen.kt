@@ -12,27 +12,30 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.posex.exercise.ExerciseType
-import com.example.posex.exercise.WorkoutConfig
-import com.example.posex.exercise.WorkoutConfigValidator
+import com.example.posex.data.UserProfile
+import com.example.posex.exercise.*
 import com.example.posex.ui.theme.*
 
 @Composable
 fun WorkoutConfigScreen(
     exerciseType: ExerciseType,
+    activeProfile: UserProfile?,
     onStartWorkout: (WorkoutConfig) -> Unit,
     onBack: () -> Unit
 ) {
-    val defaults = remember(exerciseType) {
-        when (exerciseType) {
-            ExerciseType.SQUAT, ExerciseType.PUSHUP, ExerciseType.BICEPS_CURL -> Triple(10, 3, 60)
-            ExerciseType.PLANK -> Triple(30, 2, 60)
-        }
+    val recommendedConfig = remember(exerciseType, activeProfile) {
+        val category = activeProfile?.healthStatus ?: com.example.posex.data.BmiCategory.NORMAL
+        WorkoutRecommender.recommend(category, exerciseType)
     }
 
-    var repsOrHold by remember { mutableFloatStateOf(defaults.first.toFloat()) }
-    var sets by remember { mutableFloatStateOf(defaults.second.toFloat()) }
-    var restSeconds by remember { mutableFloatStateOf(defaults.third.toFloat()) }
+    var repsOrHold by remember { 
+        mutableFloatStateOf(
+            if (exerciseType == ExerciseType.PLANK) recommendedConfig.holdSeconds.toFloat() 
+            else recommendedConfig.repsPerSet.toFloat()
+        ) 
+    }
+    var sets by remember { mutableFloatStateOf(recommendedConfig.sets.toFloat()) }
+    var restSeconds by remember { mutableFloatStateOf(recommendedConfig.restSeconds.toFloat()) }
 
     val config = when (exerciseType) {
         ExerciseType.PLANK -> WorkoutConfig(
